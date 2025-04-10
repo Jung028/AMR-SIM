@@ -23,7 +23,7 @@ RANGE_NAME = 'Sheet2!B87:E92'  # The range you want to fetch
 
 # Authenticate and build the service
 def get_sheets_service():
-    creds, _ = google.auth.load_credentials_from_file('credentials2.json', SCOPES)
+    creds, _ = google.auth.load_credentials_from_file('credentials.json', SCOPES)
     service = build('sheets', 'v4', credentials=creds)
     return service
 
