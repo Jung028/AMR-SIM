@@ -1,0 +1,65 @@
+.simulation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .controls {
+    margin-bottom: 1rem;
+  }
+  
+  .controls button {
+    margin: 0 0.5rem;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  
+  .controls .active {
+    background-color: #333;
+    color: white;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(20, 30px);
+    grid-template-rows: repeat(20, 30px);
+    gap: 1px;
+    background-color: #ccc;
+    user-select: none;
+  }
+  
+  .grid-cell {
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border: 1px solid #ddd;
+    position: relative; /* Allow z-index to work */
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Colors for components */
+  .cell-Robot {
+    background-color: blue;
+  }
+  
+  .cell-Station {
+    background-color: #3498db; /* A vivid blue */
+  }
+  
+  .cell-Charging {
+    background-color: orange;
+  }
+  
+  .cell-Shelf {
+    background-color: purple;
+  }
+  
+  .cell-Disable {
+    background-color: red;
+  }
+  
+  /* For empty cells */
+  .cell-empty {
+    background-color: #f4f4f4;
+  }
+  
