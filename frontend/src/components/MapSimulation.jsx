@@ -8,17 +8,16 @@ const MapSimulation = () => {
   const [mapData, setMapData] = useState(
     Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null))
   );
-
-  const [currentItem, setCurrentItem] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-
+  const [currentItem, setCurrentItem] = useState(null);
   const [counts, setCounts] = useState({
     Robot: 13,
     Station: 10,
     Charging: 6,
     Shelf: 26,
-    Disable: GRID_ROWS * GRID_COLS
+    Disable: GRID_ROWS * GRID_COLS,
   });
+  const [tooltipText, setTooltipText] = useState('');
 
   const isOuterCell = (row, col) => {
     return row === 0 || row === GRID_ROWS - 1 || col === 0 || col === GRID_COLS - 1;
@@ -27,8 +26,7 @@ const MapSimulation = () => {
   const placeComponent = (row, col) => {
     if (!currentItem || counts[currentItem] <= 0) return;
     if (currentItem === 'Station' && !isOuterCell(row, col)) return;
-    if ((currentItem === 'Robot' || currentItem === 'Charging' || currentItem === 'Shelf' ) && isOuterCell(row, col)) return;
-
+    if ((currentItem === 'Robot' || currentItem === 'Charging' || currentItem === 'Shelf') && isOuterCell(row, col)) return;
 
     if (mapData[row][col]) return; // If the cell is already occupied, do nothing.
 
@@ -39,16 +37,42 @@ const MapSimulation = () => {
   };
 
   const handleMouseDown = (row, col) => {
-    setIsDragging(true);
     placeComponent(row, col);
+    setIsDragging(true); // Start dragging
   };
 
   const handleMouseEnter = (row, col) => {
-    if (isDragging) placeComponent(row, col);
+    if (isDragging) placeComponent(row, col); // Place the component while dragging
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
+    setIsDragging(false); // Stop dragging
+  };
+
+  const handleButtonClick = (item) => {
+    setCurrentItem(item);
+    // Set the tooltip text based on the button clicked
+    let description = '';
+    switch (item) {
+      case 'Robot':
+        description = 'A mobile robot that performs tasks.';
+        break;
+      case 'Station':
+        description = 'A station that interacts with robots.';
+        break;
+      case 'Charging':
+        description = 'A charging station for robots.';
+        break;
+      case 'Shelf':
+        description = 'A shelf for storing items.';
+        break;
+      case 'Disable':
+        description = 'Disables the selected item.';
+        break;
+      default:
+        description = '';
+    }
+    setTooltipText(description);
   };
 
   return (
@@ -58,9 +82,12 @@ const MapSimulation = () => {
           <button
             key={item}
             className={currentItem === item ? 'active' : ''}
-            onClick={() => setCurrentItem(item)}
+            onClick={() => handleButtonClick(item)}
           >
             {item} ({counts[item]})
+            {currentItem === item && tooltipText && (
+              <div className="tooltip">{tooltipText}</div>
+            )}
           </button>
         ))}
       </div>
@@ -75,7 +102,7 @@ const MapSimulation = () => {
                 className={`grid-cell cell-${cellType || 'empty'} ${isOuterCell(rowIndex, colIndex) ? 'outer-cell' : ''}`}
                 onClick={() => placeComponent(rowIndex, colIndex)}
                 onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)} // Handle dragging over cells
               />
             );
           })
