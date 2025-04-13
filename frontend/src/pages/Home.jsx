@@ -97,7 +97,6 @@ const Home = () => {
 
       </div>
         
-        
         {/* Main Page Map - without controls */}
             
         <div className="main-map">

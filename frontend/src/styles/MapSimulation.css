@@ -2,28 +2,51 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    
     margin-top: 50px; /* Optional: Add some top margin for the entire container */
   }
-  
-  /* Tooltip styling */
-  .tooltip {
+  /* Dark Mode for Simulation Container */
+.simulation-dark-mode {
+
+}
+  /* Tooltip Styling */
+.tooltip {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 12px; /* Increased padding for more width */
-    border-radius: 3px;
-    font-size: 12px;
+    background-color: rgba(50, 50, 50, 0.9); /* Slightly lighter dark background */
+    color: #ffffff; /* White text */
+    padding: 10px 15px; /* Increased padding for better readability */
+    border-radius: 8px; /* Rounded corners for a modern look */
+    font-size: 14px; /* Slightly larger font size */
     margin-top: 5px;
     left: 50%;
     transform: translateX(-50%);
-    top: 35px; /* Position tooltip above the button */
+    top: 40px; /* Position tooltip above the button */
     z-index: 10;
-    visibility: visible; /* Ensure tooltip is visible when set */
-    opacity: 1; /* Make it fully visible */
-    transition: opacity 0.2s ease-in-out; /* Smooth transition for visibility */
-    width: 150px; /* Increased width for a wider tooltip */
-    text-align: center; /* Center the text inside the tooltip */
-  }
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth fade and slide-in effect */
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+}
+
+/* Tooltip Animation (Slide and Fade) */
+.tooltip.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px); /* Slide down when hidden */
+}
+
+/* Tooltip Arrow */
+.tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; /* Position arrow below the tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(50, 50, 50, 0.9) transparent transparent transparent; /* Arrow pointing up */
+}
   
   /* Controls container for buttons */
   .controls {
@@ -48,58 +71,76 @@
     color: white;
   }
   
-  
-  
-  /* Grid cell styling */
-.grid-cell {
-    width: 30px;
-    height: 30px;
-    background-color: white;
-    border: 1px solid #ddd;
-    position: relative; /* Allow z-index to work */
-    transition: background-color 0.2s ease;
-    cursor: pointer; /* Show pointer cursor on hover */
-  }
-  
-  /* Highlight the cell when dragging */
-  .grid-cell:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Optional highlight effect while dragging */
-  }
-  
-  /* Styling for grid layout */
+  /* Grid Container */
   .grid {
     display: grid;
-    grid-template-columns: repeat(20, 30px);
-    grid-template-rows: repeat(20, 30px);
-    gap: 1px;
-    background-color: #ccc;
-    user-select: none;
+    grid-template-columns: repeat(20, 40px); /* Larger cells for better visibility */
+    grid-template-rows: repeat(20, 40px);
+    gap: 2px; /* Slight gap between cells */
+    background-color: #2a2a2a; /* Darker grid background */
+    padding: 10px;
+    border-radius: 10px; /* Rounded corners for the grid */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
   }
   
+  /* Grid Cell */
+  .grid-cell {
+    width: 40px;
+    height: 40px;
+    background-color: #3a3a3a; /* Neutral background for empty cells */
+    border: 1px solid #444; /* Subtle border */
+    border-radius: 5px; /* Slightly rounded corners */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
   
-  /* Colors for components */
+  /* Hover Effect */
+  .grid-cell:hover {
+    background-color: #555; /* Highlight on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+  }
+  
+  /* Colors for Components */
   .cell-Robot {
-    background-color: blue;
+    background-color: #007bff; /* Bright blue for robots */
+    border: 2px solid #0056b3; /* Darker border */
   }
   
   .cell-Station {
-    background-color: #3498db; /* A vivid blue */
+    background-color: #28a745; /* Green for stations */
+    border: 2px solid #1e7e34;
   }
   
   .cell-Charging {
-    background-color: orange;
+    background-color: #ffc107; /* Yellow for charging stations */
+    border: 2px solid #e0a800;
   }
   
   .cell-Shelf {
-    background-color: purple;
+    background-color: #6f42c1; /* Purple for shelves */
+    border: 2px solid #563d7c;
   }
   
   .cell-Disable {
-    background-color: red;
+    background-color: #dc3545; /* Red for disabled cells */
+    border: 2px solid #b21f2d;
   }
   
-  /* For empty cells */
+  /* Empty Cell */
   .cell-empty {
-    background-color: #f4f4f4;
+    background-color: #3a3a3a; /* Neutral background */
+    border: 1px solid #444;
   }
-  
+
+
+  /* Dark Mode for Map */
+#map-container {
+    width: 100%;
+    height: 400px; /* Adjust height as per your design */
+}
+
+/* Dark Map Background (Active state when modal is shown) */
+.map-dark-mode {
+    background-color: #333; /* Dark background for the map container */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); /* Optional shadow effect */
+}
