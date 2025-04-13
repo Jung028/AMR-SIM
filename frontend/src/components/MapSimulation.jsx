@@ -4,10 +4,7 @@ import '../styles/MapSimulation.css';
 const GRID_ROWS = 20;
 const GRID_COLS = 20;
 
-const MapSimulation = () => {
-  const [mapData, setMapData] = useState(
-    Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null))
-  );
+const MapSimulation = ({ showControls = true, mapData, setMapData }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [counts, setCounts] = useState({
@@ -28,9 +25,9 @@ const MapSimulation = () => {
     if (currentItem === 'Station' && !isOuterCell(row, col)) return;
     if ((currentItem === 'Robot' || currentItem === 'Charging' || currentItem === 'Shelf') && isOuterCell(row, col)) return;
 
-    if (mapData[row][col]) return; // If the cell is already occupied, do nothing.
+    if (mapData[row][col]) return;
 
-    const newMap = [...mapData];
+    const newMap = [...mapData.map(row => [...row])]; // Deep copy to avoid mutation
     newMap[row][col] = currentItem;
     setMapData(newMap);
     setCounts(prev => ({ ...prev, [currentItem]: prev[currentItem] - 1 }));
@@ -38,20 +35,19 @@ const MapSimulation = () => {
 
   const handleMouseDown = (row, col) => {
     placeComponent(row, col);
-    setIsDragging(true); // Start dragging
+    setIsDragging(true);
   };
 
   const handleMouseEnter = (row, col) => {
-    if (isDragging) placeComponent(row, col); // Place the component while dragging
+    if (isDragging) placeComponent(row, col);
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false); // Stop dragging
+    setIsDragging(false);
   };
 
   const handleButtonClick = (item) => {
     setCurrentItem(item);
-    // Set the tooltip text based on the button clicked
     let description = '';
     switch (item) {
       case 'Robot':
@@ -77,20 +73,22 @@ const MapSimulation = () => {
 
   return (
     <div className="simulation-container" onMouseUp={handleMouseUp}>
-      <div className="controls">
-        {Object.keys(counts).map((item) => (
-          <button
-            key={item}
-            className={currentItem === item ? 'active' : ''}
-            onClick={() => handleButtonClick(item)}
-          >
-            {item} ({counts[item]})
-            {currentItem === item && tooltipText && (
-              <div className="tooltip">{tooltipText}</div>
-            )}
-          </button>
-        ))}
-      </div>
+      {showControls && (
+        <div className="controls">
+          {Object.keys(counts).map((item) => (
+            <button
+              key={item}
+              className={currentItem === item ? 'active' : ''}
+              onClick={() => handleButtonClick(item)}
+            >
+              {item} ({counts[item]})
+              {currentItem === item && tooltipText && (
+                <div className="tooltip">{tooltipText}</div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid">
         {mapData.map((row, rowIndex) =>
@@ -102,7 +100,7 @@ const MapSimulation = () => {
                 className={`grid-cell cell-${cellType || 'empty'} ${isOuterCell(rowIndex, colIndex) ? 'outer-cell' : ''}`}
                 onClick={() => placeComponent(rowIndex, colIndex)}
                 onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)} // Handle dragging over cells
+                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
               />
             );
           })
