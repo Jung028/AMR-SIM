@@ -12,7 +12,7 @@ const Home = () => {
     cols: 20,
     components: []
   });
-  
+
   const [tempMapData, setTempMapData] = useState({ components: [] });
   const [availableMaps, setAvailableMaps] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -40,6 +40,28 @@ const Home = () => {
     }
   };
 
+  // Function to refresh the current map by fetching it again
+  const refreshMap = async () => {
+    if (!mapData._id) {
+      alert("No map ID found to refresh.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/maps/id/${mapData._id}`);
+      if (response.ok) {
+        const updatedMap = await response.json();
+        setMapData(updatedMap);
+        setTempMapData(updatedMap);
+        localStorage.setItem("mapData", JSON.stringify(updatedMap)); // Save to localStorage
+      } else {
+        alert("Failed to refresh map.");
+      }
+    } catch (error) {
+      alert("Error refreshing map: " + error.message);
+    }
+  };
+
   useEffect(() => {
     const savedMap = localStorage.getItem("mapData");
     if (savedMap) {
@@ -53,16 +75,16 @@ const Home = () => {
   const handleUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
       const response = await fetch("http://127.0.0.1:8000/api/maps/upload", {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         alert("Map uploaded and saved successfully!");
@@ -77,40 +99,42 @@ const Home = () => {
       alert("Error uploading map: " + err.message);
     }
   };
-  
 
   const handleSave = async () => {
     if (!tempMapData.components.length) {
       alert("No components to save.");
       return;
     }
-
+  
     const mapToSave = {
       ...tempMapData,
       name: tempMapData.name || "Updated Map Name",
       rows: tempMapData.rows || 20,
       cols: tempMapData.cols || 20,
     };
-
+  
     try {
       if (!mapData._id) {
         alert("No map to save (missing ID).");
         return;
       }
-
+  
       const response = await fetch(`http://127.0.0.1:8000/api/maps/${mapData._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(mapToSave),
       });
-
+  
       if (response.ok) {
         const updatedMap = await response.json();
         setTempMapData(updatedMap); // Only update temp map
         alert("Map updated successfully!");
         handleCloseModal();
         fetchAvailableMaps();
-
+  
+        // Refresh the map after saving
+        refreshMap();  // This will reload the map data
+  
         // Keep the original map in place
         localStorage.setItem("mapData", JSON.stringify(mapData));
       } else {
@@ -120,6 +144,7 @@ const Home = () => {
       alert("Error saving map: " + error.message);
     }
   };
+  
 
   const handleDownload = () => {
     const json = JSON.stringify(mapData, null, 2);
@@ -157,6 +182,7 @@ const Home = () => {
 
   const handleEdit = () => {
     if (mapData?.components?.length > 0) {
+      setTempMapData({ ...mapData }); // Ensure the latest map is editable
       setIsEditing(true);
       setIsModalOpen(true);
     } else {
@@ -186,6 +212,7 @@ const Home = () => {
         <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
         <button onClick={handleDownload}>Download</button>
         <button onClick={handleEdit}>Edit</button>
+        <button onClick={refreshMap}>Refresh Map</button> {/* New refresh button */}
       </div>
 
       <div className="main-map">

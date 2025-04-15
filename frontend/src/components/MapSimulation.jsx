@@ -17,6 +17,7 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
   const [tooltipText, setTooltipText] = useState('');
   const [refreshKey, setRefreshKey] = useState(0); // Force re-render if needed
 
+  // Initialize the map if it's not provided
   useEffect(() => {
     if (!mapData || !mapData.components) {
       setMapData(prevData => prevData || {
@@ -105,6 +106,7 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
     setTooltipText(description);
   };
 
+  // Make sure mapData is not null or empty
   if (!mapData || !mapData.rows || !mapData.cols || !Array.isArray(mapData.components)) {
     return <div>Loading map...</div>;
   }
@@ -152,3 +154,4 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
 };
 
 export default MapSimulation;
+
