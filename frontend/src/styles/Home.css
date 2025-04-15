@@ -164,5 +164,6 @@ tr:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Stronger shadow */
     animation: slideIn 0.3s ease-in-out; /* Smooth slide-in animation */
     position: relative;
-
+    max-height: 80vh; /* 👈 LIMIT HEIGHT */
+    overflow-y: auto;  /* 👈 ENABLE SCROLLING */
 }

@@ -1,0 +1,49 @@
+{
+    "name": "Sample Warehouse Map",
+    "rows": 20,
+    "cols": 20,
+    "components": [
+        {
+            "id": "robot-3-5",
+            "type": "Robot",
+            "row": 3,
+            "col": 5
+        },
+        {
+            "id": "charging-4-8",
+            "type": "Charging",
+            "row": 4,
+            "col": 8
+        },
+        {
+            "id": "obstacle-6-10",
+            "type": "Obstacle",
+            "row": 6,
+            "col": 10
+        },
+        {
+            "id": "station-10-15",
+            "type": "Station",
+            "row": 10,
+            "col": 15
+        },
+        {
+            "id": "shelf-5-12",
+            "type": "Shelf",
+            "row": 5,
+            "col": 12
+        },
+        {
+            "id": "shelf-10-10",
+            "type": "Shelf",
+            "row": 10,
+            "col": 10
+        },
+        {
+            "id": "shelf-10-7",
+            "type": "Shelf",
+            "row": 10,
+            "col": 7
+        }
+    ]
+}

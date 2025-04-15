@@ -15,11 +15,11 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
     Disable: GRID_ROWS * GRID_COLS,
   });
   const [tooltipText, setTooltipText] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0); // Force re-render if needed
 
-  // Initialize default mapData structure if missing
   useEffect(() => {
     if (!mapData || !mapData.components) {
-      setMapData({
+      setMapData(prevData => prevData || {
         _id: { $oid: generateRandomObjectId() },
         name: 'New Map',
         rows: GRID_ROWS,
@@ -52,13 +52,18 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
       col,
     };
 
-    const newMap = {
-      ...mapData,
-      components: [...mapData.components, newComponent],
-    };
+    // Update map data and force refresh
+    setMapData(prev => ({
+      ...prev,
+      components: [...prev.components, newComponent],
+    }));
 
-    setMapData(newMap);
-    setCounts((prev) => ({ ...prev, [currentItem]: prev[currentItem] - 1 }));
+    setCounts(prev => ({
+      ...prev,
+      [currentItem]: prev[currentItem] - 1,
+    }));
+
+    setRefreshKey(prev => prev + 1); // Force grid re-render
   };
 
   const handleMouseDown = (row, col) => {
@@ -100,8 +105,8 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
     setTooltipText(description);
   };
 
-  if (!mapData || !mapData.components) {
-    return <div>Error: Map data is not available.</div>;
+  if (!mapData || !mapData.rows || !mapData.cols || !Array.isArray(mapData.components)) {
+    return <div>Loading map...</div>;
   }
 
   return (
@@ -123,7 +128,7 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
         </div>
       )}
 
-      <div className="grid">
+      <div className="grid" key={refreshKey}>
         {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
           Array.from({ length: GRID_COLS }).map((_, colIndex) => {
             const cellType = mapData.components.find(
