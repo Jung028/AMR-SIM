@@ -150,7 +150,6 @@ tr:hover {
     align-items: center;
     z-index: 1000;
 }
- 
 
 /* Modal Content Styles */
 .modal-content {
@@ -158,12 +157,12 @@ tr:hover {
     color: #e0e0e0;
     padding: 30px;
     border-radius: 15px;
-    max-width: 90%;
-    width: 90%;
+    width: 90%; /* Set modal width to 90% of the viewport */
+    max-width: 90%; /* Prevent exceeding 90% of the viewport width */
     text-align: center;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Stronger shadow */
     animation: slideIn 0.3s ease-in-out; /* Smooth slide-in animation */
     position: relative;
-    max-height: 80vh; /* 👈 LIMIT HEIGHT */
-    overflow-y: auto;  /* 👈 ENABLE SCROLLING */
+    max-height: 80vh; /* Limit height to 80% of the viewport */
+    overflow-y: auto;  /* Enable scrolling for long content */
 }

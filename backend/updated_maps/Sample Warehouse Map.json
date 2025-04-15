@@ -44,6 +44,108 @@
             "type": "Shelf",
             "row": 10,
             "col": 7
+        },
+        {
+            "id": "shelf-1-8",
+            "type": "Shelf",
+            "row": 1,
+            "col": 8
+        },
+        {
+            "id": "shelf-3-10",
+            "type": "Shelf",
+            "row": 3,
+            "col": 10
+        },
+        {
+            "id": "shelf-4-11",
+            "type": "Shelf",
+            "row": 4,
+            "col": 11
+        },
+        {
+            "id": "shelf-6-13",
+            "type": "Shelf",
+            "row": 6,
+            "col": 13
+        },
+        {
+            "id": "shelf-9-13",
+            "type": "Shelf",
+            "row": 9,
+            "col": 13
+        },
+        {
+            "id": "shelf-11-13",
+            "type": "Shelf",
+            "row": 11,
+            "col": 13
+        },
+        {
+            "id": "shelf-13-12",
+            "type": "Shelf",
+            "row": 13,
+            "col": 12
+        },
+        {
+            "id": "shelf-14-12",
+            "type": "Shelf",
+            "row": 14,
+            "col": 12
+        },
+        {
+            "id": "shelf-15-11",
+            "type": "Shelf",
+            "row": 15,
+            "col": 11
+        },
+        {
+            "id": "shelf-15-9",
+            "type": "Shelf",
+            "row": 15,
+            "col": 9
+        },
+        {
+            "id": "shelf-15-8",
+            "type": "Shelf",
+            "row": 15,
+            "col": 8
+        },
+        {
+            "id": "shelf-15-6",
+            "type": "Shelf",
+            "row": 15,
+            "col": 6
+        },
+        {
+            "id": "shelf-14-6",
+            "type": "Shelf",
+            "row": 14,
+            "col": 6
+        },
+        {
+            "id": "shelf-12-5",
+            "type": "Shelf",
+            "row": 12,
+            "col": 5
+        },
+        {
+            "id": "shelf-11-4",
+            "type": "Shelf",
+            "row": 11,
+            "col": 4
+        },
+        {
+            "id": "shelf-9-4",
+            "type": "Shelf",
+            "row": 9,
+            "col": 4
+        },
+        {
+            "id": "shelf-8-4",
+            "type": "Shelf",
+            "row": 8,
+            "col": 4
         }
     ]
 }

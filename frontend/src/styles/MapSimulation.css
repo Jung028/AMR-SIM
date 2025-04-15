@@ -2,51 +2,33 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    
     margin-top: 50px; /* Optional: Add some top margin for the entire container */
   }
   /* Dark Mode for Simulation Container */
 .simulation-dark-mode {
-
+    background-color: #333; /* Dark background */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); /* Optional shadow effect */
 }
-  /* Tooltip Styling */
-.tooltip {
+  
+  /* Tooltip styling */
+  .tooltip {
     position: absolute;
-    background-color: rgba(50, 50, 50, 0.9); /* Slightly lighter dark background */
-    color: #ffffff; /* White text */
-    padding: 10px 15px; /* Increased padding for better readability */
-    border-radius: 8px; /* Rounded corners for a modern look */
-    font-size: 14px; /* Slightly larger font size */
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 12px; /* Increased padding for more width */
+    border-radius: 3px;
+    font-size: 12px;
     margin-top: 5px;
     left: 50%;
     transform: translateX(-50%);
-    top: 40px; /* Position tooltip above the button */
+    top: 35px; /* Position tooltip above the button */
     z-index: 10;
-    visibility: visible;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth fade and slide-in effect */
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
-}
-
-/* Tooltip Animation (Slide and Fade) */
-.tooltip.hidden {
-    opacity: 0;
-    transform: translateX(-50%) translateY(10px); /* Slide down when hidden */
-}
-
-/* Tooltip Arrow */
-.tooltip::after {
-    content: '';
-    position: absolute;
-    bottom: -5px; /* Position arrow below the tooltip */
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(50, 50, 50, 0.9) transparent transparent transparent; /* Arrow pointing up */
-}
+    visibility: visible; /* Ensure tooltip is visible when set */
+    opacity: 1; /* Make it fully visible */
+    transition: opacity 0.2s ease-in-out; /* Smooth transition for visibility */
+    width: 150px; /* Increased width for a wider tooltip */
+    text-align: center; /* Center the text inside the tooltip */
+  }
   
   /* Controls container for buttons */
   .controls {
@@ -72,27 +54,29 @@
   }
   
   /* Grid Container */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(20, 40px); /* Larger cells for better visibility */
-    grid-template-rows: repeat(20, 40px);
-    gap: 2px; /* Slight gap between cells */
-    background-color: #2a2a2a; /* Darker grid background */
-    padding: 10px;
-    border-radius: 10px; /* Rounded corners for the grid */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
-  }
-  
-  /* Grid Cell */
-  .grid-cell {
-    width: 40px;
-    height: 40px;
-    background-color: #3a3a3a; /* Neutral background for empty cells */
-    border: 1px solid #444; /* Subtle border */
-    border-radius: 5px; /* Slightly rounded corners */
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    cursor: pointer;
-  }
+ /* Grid Container */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(20, 20px); /* Smaller cells */
+  grid-template-rows: repeat(20, 20px);
+  gap: 1px; /* Reduced gap between cells */
+  background-color: #2a2a2a; /* Darker grid background */
+  padding: 10px;
+  border-radius: 10px; /* Rounded corners for the grid */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+}
+
+/* Grid Cell */
+.grid-cell {
+  width: 20px; /* Smaller width */
+  height: 20px; /* Smaller height */
+  background-color: #3a3a3a; /* Neutral background for empty cells */
+  border: 1px solid #444; /* Subtle border */
+  border-radius: 5px; /* Slightly rounded corners */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
   
   /* Hover Effect */
   .grid-cell:hover {
