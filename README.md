@@ -58,8 +58,8 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/amr-sim.git
-cd amr-sim
+git clone https://github.com/Jung028/AMR-SIM.git
+cd AMR-SIM
 
 # Install backend dependencies
 cd backend
