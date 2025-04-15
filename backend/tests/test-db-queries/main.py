@@ -6,14 +6,6 @@ from bson import ObjectId
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 import json
-import google.auth
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-import os
-from dotenv import load_dotenv  # Import the dotenv module
-
-# Load environment variables from the .env file
-load_dotenv()
 
 app = FastAPI()
 
@@ -26,46 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ~~~~ GOOGLE SHEETS CONNECTION AND RETRIEVAL ~~~~
-
-# Google Sheets API authentication
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-SHEET_ID = '1ylZxBM7yyCzBeP7Hu-MfD88tE0QSKlkYibf58PQLWbc'  # Your Google Sheet ID
-RANGE_NAME = 'Sheet2!B87:E92'  # The range you want to fetch
-
-# Authenticate and build the service
-def get_sheets_service():
-    creds, _ = google.auth.load_credentials_from_file('credentials.json', SCOPES)
-    service = build('sheets', 'v4', credentials=creds)
-    return service
-
-@app.get("/google-sheets-data")
-async def get_google_sheets_data():
-    service = get_sheets_service()
-
-    try:
-        # Fetch data from Google Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SHEET_ID, range=RANGE_NAME).execute()
-        values = result.get('values', [])
-
-        # Format the data into rows
-        rows = []
-        for row in values:
-            rows.append({"data": row})  # Adjust the structure as needed
-
-        return {"rows": rows}
-    except HttpError as err:
-        return {"error": f"An error occurred: {err}"}
-
-# ~~~~ END ~~~~
-
-
-# ~~~~ MONGODB CONNECTION AND RETRIEVAL ~~~~
-
-# Load MongoDB URI from environment variables
-MONGO_URI = os.getenv("MONGO_URI")  # Fetch the MongoDB URI from the environment variable
+# MongoDB Atlas connection URI
+MONGO_URI = "mongodb+srv://admin:1234@cluster0.nby5v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # Initialize MongoDB client using Atlas URI
 client = AsyncIOMotorClient(MONGO_URI)
@@ -163,7 +117,7 @@ async def upload_map(file: UploadFile = File(...)):
         if "components" not in data or not isinstance(data["components"], list):
             raise HTTPException(status_code=400, detail="Invalid file format")
 
-        # Create map data object
+        # Assuming the file includes 'name', 'rows', and 'cols' fields
         map_data = MapRequest(
             name=data.get("name", "Unnamed Map"),
             rows=data.get("rows", 0),
@@ -171,33 +125,23 @@ async def upload_map(file: UploadFile = File(...)):
             components=data["components"]
         )
 
-        # Insert into MongoDB
+        # Save to MongoDB
         result = await maps_collection.insert_one(map_data.dict())
-        inserted_map_id = result.inserted_id
 
-        # Load the full inserted map
-        inserted_map = await maps_collection.find_one({"_id": inserted_map_id})
-        if not inserted_map:
-            raise HTTPException(status_code=500, detail="Failed to retrieve inserted map")
-
-        # Convert ObjectId to string for JSON response
-        inserted_map["_id"] = str(inserted_map["_id"])
-
-        # (Optional) Save JSON locally
+        # Save the updated file back to the local system (optional)
         updated_map_file_path = f"./updated_maps/{map_data.name}.json"
         os.makedirs(os.path.dirname(updated_map_file_path), exist_ok=True)
         with open(updated_map_file_path, 'w') as file:
             json.dump(map_data.dict(), file, indent=4)
 
-        print(f"Map uploaded and loaded with ID: {inserted_map['_id']}")
-        return inserted_map
+        print(f"Map uploaded with ID: {result.inserted_id}")
+        return {
+            "inserted_id": str(result.inserted_id),
+            "message": "Map uploaded and saved to MongoDB and file"
+        }
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Error decoding the JSON file")
     except Exception as e:
-        print(f"Error uploading/loading map: {e}")
+        print(f"Error uploading map: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-
-# ~~~~ END ~~~~

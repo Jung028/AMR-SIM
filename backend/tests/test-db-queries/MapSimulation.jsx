@@ -7,57 +7,24 @@ const GRID_COLS = 20;
 const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
-  const [maxCounts, setMaxCounts] = useState(null);
-  const [placedCounts, setPlacedCounts] = useState({});
+  const [counts, setCounts] = useState({
+    Robot: 13,
+    Station: 10,
+    Charging: 6,
+    Shelf: 26,
+    Disable: GRID_ROWS * GRID_COLS,
+  });
   const [tooltipText, setTooltipText] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/google-sheets-data')
-      .then((res) => res.json())
-      .then((data) => {
-        const rows = data.rows.map(row => row.data);
-        const getValue = (label) => {
-          const row = rows.find(r => r[0] === label);
-          return row ? parseInt(row[2], 10) : 0;
-        };
-
-        const initialMaxCounts = {
-          Robot: getValue('Number of Robots'),
-          Station: getValue('Stations'),
-          Charging: getValue('Charging Ports'),
-          Shelf: getValue('Shelves'),
-          Disable: Infinity, // Infinite limit for disable
-        };
-
-        setMaxCounts(initialMaxCounts);
-      })
-      .catch((err) => {
-        console.error('Failed to fetch component limits:', err);
-      });
-  }, []);
-
+  // Initialize default mapData structure if missing
   useEffect(() => {
     if (!mapData || !mapData.components) {
-      setMapData(prevData => prevData || {
+      setMapData({
         _id: { $oid: generateRandomObjectId() },
         name: 'New Map',
         rows: GRID_ROWS,
         cols: GRID_COLS,
         components: [],
-      });
-    } else {
-      // Recalculate placed counts based on the saved components
-      const counts = mapData.components.reduce((acc, comp) => {
-        acc[comp.type] = (acc[comp.type] || 0) + 1;
-        return acc;
-      }, {});
-      setPlacedCounts({
-        Robot: counts.Robot || 0,
-        Station: counts.Station || 0,
-        Charging: counts.Charging || 0,
-        Shelf: counts.Shelf || 0,
-        Disable: 0, // Not counted
       });
     }
   }, [mapData, setMapData]);
@@ -73,7 +40,7 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
   };
 
   const placeComponent = (row, col) => {
-    if (!currentItem || !maxCounts || (currentItem !== 'Disable' && placedCounts[currentItem] >= maxCounts[currentItem])) return;
+    if (!currentItem || counts[currentItem] <= 0) return;
     if (currentItem === 'Station' && !isOuterCell(row, col)) return;
     if ((currentItem === 'Robot' || currentItem === 'Charging' || currentItem === 'Shelf') && isOuterCell(row, col)) return;
     if (mapData.components.some((component) => component.row === row && component.col === col)) return;
@@ -85,17 +52,13 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
       col,
     };
 
-    setMapData(prev => ({
-      ...prev,
-      components: [...prev.components, newComponent],
-    }));
+    const newMap = {
+      ...mapData,
+      components: [...mapData.components, newComponent],
+    };
 
-    setPlacedCounts(prev => ({
-      ...prev,
-      [currentItem]: (prev[currentItem] || 0) + 1,
-    }));
-
-    setRefreshKey(prev => prev + 1);
+    setMapData(newMap);
+    setCounts((prev) => ({ ...prev, [currentItem]: prev[currentItem] - 1 }));
   };
 
   const handleMouseDown = (row, col) => {
@@ -137,27 +100,21 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
     setTooltipText(description);
   };
 
-  if (!mapData || !mapData.rows || !mapData.cols || !Array.isArray(mapData.components)) {
-    return <div>Loading map...</div>;
-  }
-
-  if (!maxCounts) {
-    return <div>Loading component limits...</div>;
+  if (!mapData || !mapData.components) {
+    return <div>Error: Map data is not available.</div>;
   }
 
   return (
     <div className="simulation-container" onMouseUp={handleMouseUp}>
       {showControls && (
         <div className="controls">
-          {Object.keys(maxCounts).map((item) => (
+          {Object.keys(counts).map((item) => (
             <button
               key={item}
               className={currentItem === item ? 'active' : ''}
               onClick={() => handleButtonClick(item)}
             >
-              {item}
-              {item !== 'Disable' && maxCounts[item] !== Infinity &&
-                ` (${maxCounts[item] - (placedCounts[item] || 0)})`}
+              {item} ({counts[item]})
               {currentItem === item && tooltipText && (
                 <div className="tooltip">{tooltipText}</div>
               )}
@@ -166,7 +123,7 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
         </div>
       )}
 
-      <div className="grid" key={refreshKey}>
+      <div className="grid">
         {Array.from({ length: GRID_ROWS }).map((_, rowIndex) =>
           Array.from({ length: GRID_COLS }).map((_, colIndex) => {
             const cellType = mapData.components.find(

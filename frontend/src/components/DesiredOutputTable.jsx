@@ -1,23 +1,33 @@
 import React, { useEffect, useState } from 'react';
 
 const DesiredOutputTable = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/google-sheets-data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch data from the backend.');
+      }
+      const result = await response.json();
+      setData(result.rows || []);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("http://localhost:8000/spreadsheet")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch spreadsheet");
-        }
-        return res.json();
-      })
-      .then(setData)
-      .catch((err) => setError(err.message));
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
+  if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
-  if (!data) return <p>Loading...</p>;
 
   return (
     <div style={{ marginTop: "2rem" }}>
@@ -25,15 +35,17 @@ const DesiredOutputTable = () => {
       <table border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>Parameter</th>
-            <th>Value</th>
+            {data[0]?.data.map((col, idx) => (
+              <th key={idx}>{col}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {Object.entries(data).map(([key, value]) => (
-            <tr key={key}>
-              <td><strong>{key}</strong></td>
-              <td>{value}</td>
+          {data.slice(1).map((row, idx) => (
+            <tr key={idx}>
+              {row.data.map((cell, i) => (
+                <td key={i}>{cell}</td>
+              ))}
             </tr>
           ))}
         </tbody>
