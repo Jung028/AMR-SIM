@@ -154,6 +154,7 @@ button span.sm\:mr-2 {
     stroke: currentColor;
 }
 
+
 /* Modal Styles */
 .modal {
     position: fixed;
@@ -169,13 +170,18 @@ button span.sm\:mr-2 {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+    backdrop-filter: blur(4px); /* backdrop-blur-sm */
+    border-radius: 1rem; /* rounded-xl */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
     padding: 20px;
-    border-radius: 8px;
     width: 400px;
     text-align: center;
+    color: white; /* Ensures text color is white for readability */
+    transition: all 0.3s ease; /* Smooth transition */
 }
 
+/* Close Button */
 .close-modal {
     position: absolute;
     top: 10px;
@@ -183,11 +189,16 @@ button span.sm\:mr-2 {
     font-size: 20px;
     background: none;
     border: none;
-    color: #000;
+    color: #ffffff; /* White color for close button */
     cursor: pointer;
 }
 
-/* Form Styles */
+/* Hover effect for close button */
+.close-modal:hover {
+    color: #4c86f9; /* Subtle hover effect for close button */
+}
+
+/* Form Styles inside Modal */
 form {
     margin-top: 20px;
 }
@@ -201,14 +212,34 @@ input {
 }
 
 button[type="submit"] {
-    background-color: #28a745;
+    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
     color: white;
-    border: none;
-    padding: 10px;
-    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
+    padding: 0.375rem 1.25rem; /* px-3 sm:px-5 py-1.5 sm:py-2 */
+    border-radius: 9999px; /* rounded-full */
     cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition */
+    width: auto; /* Width adjusts based on content */
+    backdrop-filter: blur(4px); /* backdrop-blur-sm */
 }
 
+/* Button Hover Effect */
 button[type="submit"]:hover {
-    background-color: #218838;
+    border-color: #4c86f9; /* hover:border-[#4c86f9]/50 */
+    transform: translateY(-2px); /* Reduced hover effect, subtle lift */
+}
+
+/* Text size inside form button */
+button[type="submit"].sm\:text-base {
+    font-size: 1rem; /* sm:text-base */
+}
+
+/* Icon inside the button */
+button[type="submit"] span {
+    margin-right: 0.25rem; /* mr-1 */
+}
+
+/* Adjust the spacing for larger screens */
+button[type="submit"] span.sm\:mr-2 {
+    margin-right: 0.5rem; /* sm:mr-2 */
 }
