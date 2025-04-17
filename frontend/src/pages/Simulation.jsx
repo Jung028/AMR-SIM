@@ -1,7 +1,9 @@
+// src/pages/Simulation.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Algorithm from '../components/Algorithm';
 import Sku_Sync from '../components/Sku_Sync';
+import MapManager from '../components/MapManager'; // ⬅ Import MapManager
 import '../styles/Simulation.css';
 
 const Simulation = () => {
@@ -23,6 +25,8 @@ const Simulation = () => {
       {/* Back Button */}
       <button onClick={handleBack} className="back-button">← Back</button>
 
+
+
       {/* SKU Sync Section */}
       <div className="category-container">
         <div className="category">
@@ -37,6 +41,11 @@ const Simulation = () => {
       {/* Algorithm Selector */}
       <Algorithm onChange={setSelectedAlgorithms} />
 
+
+      {/* Map Manager */}
+      <MapManager hideTopBar={true} />
+
+      
       {/* Start Button */}
       <div className="start-container">
         <button onClick={handleStart} className="start-button">

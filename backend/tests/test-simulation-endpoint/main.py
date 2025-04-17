@@ -11,6 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
 from dotenv import load_dotenv  # Import the dotenv module
+from pymongo import MongoClient
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -201,3 +202,50 @@ async def upload_map(file: UploadFile = File(...)):
 
 
 # ~~~~ END ~~~~
+
+
+sku_collection = db['sku']
+putaway_collection = db['putaway']
+picking_collection = db['picking']
+
+
+# Pydantic model
+class SKURequest(BaseModel):
+    header: dict
+    body: dict
+
+# For combined simulation request
+class SimulationRequest(BaseModel):
+    putaway: SKURequest
+    picking: SKURequest
+
+# Original SKU endpoint
+@app.post("/save-sku/")
+async def save_sku(data: SKURequest):
+    try:
+        sku_data = {"header": data.header, "body": data.body}
+        result = sku_collection.insert_one(sku_data)
+        return {"message": "SKU data saved successfully", "sku_id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Error saving SKU data: " + str(e))
+
+# Save putaway
+@app.post("/save-putaway/")
+async def save_putaway(data: SKURequest):
+    try:
+        document = {"header": data.header, "body": data.body}
+        result = putaway_collection.insert_one(document)
+        return {"message": "Putaway data saved successfully", "sku_id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error saving putaway data: {str(e)}")
+
+# Save picking
+@app.post("/save-picking/")
+async def save_picking(data: SKURequest):
+    try:
+        document = {"header": data.header, "body": data.body}
+        result = picking_collection.insert_one(document)
+        return {"message": "Picking data saved successfully", "sku_id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error saving picking data: {str(e)}")
+

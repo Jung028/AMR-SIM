@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import MapSimulation from './MapSimulation';
 import '../styles/MapManager.css';
 
-const MapManager = () => {
+const MapManager = ({ hideTopBar = false }) => {
   const [mapData, setMapData] = useState({
     _id: { $oid: "initial-map-id" },
     name: 'New Map',
@@ -189,19 +189,21 @@ const MapManager = () => {
 
   return (
     <div>
-      <div className="top-bar">
-        <button onClick={() => fileInputRef.current.click()}>Upload</button>
-        <input
-          type="file"
-          accept=".json"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={handleUpload}
-        />
-        <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
-        <button onClick={handleDownload}>Download</button>
-        <button onClick={handleEdit}>Edit</button>
-      </div>
+      {!hideTopBar && (
+        <div className="top-bar">
+          <button onClick={() => fileInputRef.current.click()}>Upload</button>
+          <input
+            type="file"
+            accept=".json"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleUpload}
+          />
+          <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
+          <button onClick={handleDownload}>Download</button>
+          <button onClick={handleEdit}>Edit</button>
+        </div>
+      )}
 
       <div className="main-map">
         <MapSimulation
