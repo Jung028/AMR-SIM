@@ -70,8 +70,8 @@ MONGO_URI = os.getenv("MONGO_URI")  # Fetch the MongoDB URI from the environment
 
 # Initialize MongoDB client using Atlas URI
 client = AsyncIOMotorClient(MONGO_URI)
-db = client["map"]  # Database name
-maps_collection = db["map"]  # Collection name
+db_map = client["map"]  # Database name
+maps_collection = db_map["map"]  # Collection name
 
 # Pydantic models
 class Component(BaseModel):
@@ -204,9 +204,14 @@ async def upload_map(file: UploadFile = File(...)):
 # ~~~~ END ~~~~
 
 
-sku_collection = db['sku']
-putaway_collection = db['putaway']
-picking_collection = db['picking']
+
+
+db_sim = client["sim"]  # Database name
+
+
+sku_collection = db_sim['sku']
+putaway_collection = db_sim['putaway']
+picking_collection = db_sim['picking']
 
 
 # Pydantic model
