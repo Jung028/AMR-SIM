@@ -33,11 +33,11 @@ class OrderDetails(BaseModel):
 class SkuItem(BaseModel):
     sku_code: str
     sku_id: str
-    in_batch_code: Optional[str]
+    in_batch_code: Optional[str]  # Make in_batch_code optional
     sku_level: int
     amount: int
-    production_date: Optional[int]
-    expiration_date: Optional[int]
+    production_date: Optional[int]  # Make production_date optional
+    expiration_date: Optional[int]  # Make expiration_date optional
 
 class Order(BaseModel):
     order_details: OrderDetails
