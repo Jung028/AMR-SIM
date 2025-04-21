@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import MapSimulation from './MapSimulation';
 import '../styles/MapManager.css';
 
-const MapManager = ({ hideTopBar = false }) => {
+const MapManager = () => {
   const [mapData, setMapData] = useState({
     _id: { $oid: "initial-map-id" },
     name: 'New Map',
@@ -16,6 +16,10 @@ const MapManager = ({ hideTopBar = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [robotPos, setRobotPos] = useState({ row: 0, col: 0 });
+  const [shelfPos, setShelfPos] = useState({ row: 0, col: 0 });
+  const [shelfOriginalPos, setShelfOriginalPos] = useState({ row: 0, col: 0 });
   const fileInputRef = useRef(null);
 
   const fetchAvailableMaps = async () => {
@@ -129,7 +133,7 @@ const MapManager = ({ hideTopBar = false }) => {
         handleCloseModal();
         fetchAvailableMaps();
         refreshMap();
-        localStorage.setItem("mapData", JSON.stringify(mapData));
+        localStorage.setItem("mapData", JSON.stringify(updatedMap)); // Fixed to store updated map
       } else {
         alert("Failed to save the map.");
       }
@@ -182,6 +186,87 @@ const MapManager = ({ hideTopBar = false }) => {
     }
   };
 
+  const startSimulation = () => {
+    if (mapData && mapData.components) {
+      const robot = mapData.components.find(c => c.type === 'Robot');
+      const shelf = mapData.components.find(c => c.type === 'Shelf');
+      const station = mapData.components.find(c => c.type === 'Station');
+  
+      if (!robot || !shelf || !station) {
+        alert("Please place both a robot, a shelf, and a station first.");
+        return;
+      }
+  
+      setIsEditing(false);
+      setIsModalOpen(false); // Close any modal if open
+      setIsSimulating(true);
+      startRobotMovementSimulation(robot, shelf, station);
+    }
+  };
+
+  const startRobotMovementSimulation = async (robot, shelf, station) => {
+    // Set initial positions
+    setRobotPos({ row: robot.row, col: robot.col });
+    setShelfPos({ row: shelf.row, col: shelf.col });
+    setShelfOriginalPos({ row: shelf.row, col: shelf.col });
+  
+    // Move robot to shelf
+    await moveTo({ row: robot.row, col: robot.col }, { row: shelf.row, col: shelf.col });
+    await pickUpShelf();
+  
+    // Move to station
+    await moveTo({ row: shelf.row, col: shelf.col }, { row: station.row, col: station.col });
+    await waitAtStation();
+  
+    // Return shelf to original position
+    await moveTo({ row: station.row, col: station.col }, shelfOriginalPos);
+    await placeShelf();
+  
+    // Move robot back to its original position
+    await moveTo(shelfOriginalPos, { row: robot.row, col: robot.col });
+  
+    setIsSimulating(false); // End simulation
+  };
+  
+  // This is the function to simulate movement. You can modify it as needed to update `mapData` based on new robot positions
+  const moveTo = async (start, end) => {
+    // Assume movement takes place in steps, and each step is a 1-unit movement.
+    const totalSteps = Math.max(Math.abs(end.row - start.row), Math.abs(end.col - start.col));
+  
+    for (let step = 0; step <= totalSteps; step++) {
+      const currentRow = start.row + ((end.row - start.row) / totalSteps) * step;
+      const currentCol = start.col + ((end.col - start.col) / totalSteps) * step;
+  
+      // Update the robot's position in the mapData state
+      setMapData((prevState) => {
+        const updatedComponents = prevState.components.map((component) =>
+          component.type === 'Robot'
+            ? { ...component, row: Math.round(currentRow), col: Math.round(currentCol) }
+            : component
+        );
+        return { ...prevState, components: updatedComponents };
+      });
+  
+      // Simulate a delay to make the movement visible
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 100ms delay for each step
+    }
+  };
+
+  const pickUpShelf = async () => {
+    // Simulate picking up the shelf
+    return new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+  const waitAtStation = async () => {
+    // Simulate waiting at the station
+    return new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+  const placeShelf = async () => {
+    // Simulate placing the shelf back
+    return new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
@@ -189,21 +274,20 @@ const MapManager = ({ hideTopBar = false }) => {
 
   return (
     <div>
-      {!hideTopBar && (
-        <div className="top-bar">
-          <button onClick={() => fileInputRef.current.click()}>Upload</button>
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={handleUpload}
-          />
-          <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
-          <button onClick={handleDownload}>Download</button>
-          <button onClick={handleEdit}>Edit</button>
-        </div>
-      )}
+      <div className="top-bar">
+        <button onClick={() => fileInputRef.current.click()}>Upload</button>
+        <input
+          type="file"
+          accept=".json"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleUpload}
+        />
+        <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
+        <button onClick={handleDownload}>Download</button>
+        <button onClick={handleEdit}>Edit</button>
+        <button onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
+      </div>
 
       <div className="main-map">
         <MapSimulation

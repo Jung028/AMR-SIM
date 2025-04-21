@@ -1,28 +1,39 @@
-import React, { useState } from 'react';
+// src/pages/Simulation.jsx
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Algorithm from '../components/Algorithm';
 import Sku_Sync from '../components/Sku_Sync';
-import MapManager from '../components/MapManager'; // ⬅ Import MapManager
-import PutawayTasksTable from '../components/PutawayTasksTable'; // Import PutawayTasksTable
+import MapManager from '../components/MapManager';
+import PutawayTasksTable from '../components/PutawayTasksTable';
 import '../styles/Simulation.css';
 
 const Simulation = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(null);
   const [selectedAlgorithms, setSelectedAlgorithms] = useState([]);
+  const [simulationInProgress, setSimulationInProgress] = useState(false);
+
+  const mapRef = useRef(); // Ref to control MapManager
 
   const handleBack = () => navigate('/');
   const openModal = (modalId) => setIsModalOpen(modalId);
   const closeModal = () => setIsModalOpen(null);
-  const handleStart = () => {
+
+  const handleStartSimulation = () => {
+    if (simulationInProgress) return;
     console.log('Starting simulation with algorithms:', selectedAlgorithms);
+    setSimulationInProgress(true);
+    
+    // Trigger simulation inside MapManager
+    mapRef.current?.startSimulationSequence(() => {
+      setSimulationInProgress(false);
+    });
   };
 
   return (
     <div className="home-container">
       <h1>Map Simulation & Algorithm</h1>
 
-      {/* Back Button */}
       <button onClick={handleBack} className="back-button">← Back</button>
 
       {/* SKU Sync Section */}
@@ -39,15 +50,15 @@ const Simulation = () => {
       {/* Algorithm Selector */}
       <Algorithm onChange={setSelectedAlgorithms} />
 
-      {/* Map Manager */}
-      <MapManager hideTopBar={true} />
+      {/* Map Manager with ref */}
+      <MapManager ref={mapRef} isSimulating={simulationInProgress} hideTopBar={true} />
 
-      {/* Display Putaway Tasks Table */}
+      {/* Putaway Tasks Table */}
       <PutawayTasksTable />
 
-      {/* Start Button */}
+      {/* Start Simulation Button */}
       <div className="start-container">
-        <button onClick={handleStart} className="start-button">
+        <button onClick={handleStartSimulation} className="start-button" disabled={simulationInProgress}>
           ▶ Start Simulation
         </button>
       </div>
