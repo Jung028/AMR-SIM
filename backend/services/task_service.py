@@ -1,3 +1,4 @@
+# services/task_service.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,7 +12,7 @@ from fastapi.encoders import jsonable_encoder  # ✅ Added for safe encoding
 router = APIRouter()
 
 # MongoDB connection
-MONGO_URI = os.getenv("MONGO_URI")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")  # Default to localhost if env var is not set
 client = AsyncIOMotorClient(MONGO_URI)
 db_task = client["task_db"]
 putaway_tasks = db_task["putaway_tasks"]
@@ -41,9 +42,24 @@ def serialize_dict(data):
         return str(data)
     return data
 
+# Endpoint to fetch pending putaway tasks from the database
+@router.get("/task/putaway-tasks")
+async def get_putaway_tasks():
+    try:
+        # Fetch tasks from the MongoDB collection
+        tasks = await putaway_tasks.find({}).to_list(length=100)  # Fetch up to 100 tasks
+        # Convert MongoDB ObjectId to string for JSON serialization
+        tasks = [serialize_dict(task) for task in tasks]
+        
+        return {"tasks": tasks}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching putaway tasks")
+
 @router.post("/task/generate-putaway")
 async def generate_putaway_task(order: PutawayOrder):
     try:
+        # Use httpx to fetch available robots, shelves, and stations
         async with httpx.AsyncClient() as client:
             robots_response = await client.get("http://localhost:8000/robots/free")
             robots_data = robots_response.json()
@@ -75,6 +91,7 @@ async def generate_putaway_task(order: PutawayOrder):
         shelf_id = str(shelf.get("shelf_id"))
         station_id = str(station.get("station_id"))
 
+        # Create the task
         task = {
             "task_id": f"TASK_{random.randint(1000, 9999)}",
             "order_id": order.order_id,
@@ -85,10 +102,11 @@ async def generate_putaway_task(order: PutawayOrder):
             "status": "pending"
         }
 
+        # Insert the task into MongoDB
         result = await putaway_tasks.insert_one(task)
         task["_id"] = result.inserted_id  # Add ObjectId for response
 
-        # ✅ Convert everything to JSON-safe values
+        # Convert everything to JSON-safe values
         serializable_task = serialize_dict(task)
 
         return {"message": "Putaway task created", "task": serializable_task}
