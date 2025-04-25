@@ -63,6 +63,8 @@ const Simulation = () => {
         </button>
       </div>
 
+      
+
       {/* SKU Sync Modal */}
       {isModalOpen === 'skuSync' && <Sku_Sync isOpen={true} closeModal={closeModal} />}
     </div>

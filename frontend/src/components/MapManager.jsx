@@ -101,46 +101,62 @@ const MapManager = () => {
     }
   };
 
-  const handleSave = async () => {
-    if (!tempMapData.components.length) {
-      alert("No components to save.");
+ const handleSave = async () => {
+  if (!tempMapData.components.length) {
+    alert("No components to save.");
+    return;
+  }
+
+  try {
+    let newMapData = { ...tempMapData };
+
+    // Generate unique map ID if not present (i.e., new map)
+    if (!newMapData.mapId) {
+      // Fetch the latest map ID from the backend
+      const idResponse = await fetch("http://127.0.0.1:8000/api/maps/latest-id");
+      const { latestId } = await idResponse.json();
+
+      // Increment and format as M### (e.g., M811 -> M812)
+      const newIdNumber = parseInt(latestId?.replace("M", "")) + 1 || 801;
+      const newMapId = `M${newIdNumber}`;
+
+      newMapData = {
+        ...newMapData,
+        mapId: newMapId,
+        name: `Map ${newMapId}`,
+      };
+    }
+
+    newMapData.rows = newMapData.rows || 20;
+    newMapData.cols = newMapData.cols || 20;
+
+    if (!mapData._id) {
+      alert("No map to save (missing ID).");
       return;
     }
 
-    const mapToSave = {
-      ...tempMapData,
-      name: tempMapData.name || "Updated Map Name",
-      rows: tempMapData.rows || 20,
-      cols: tempMapData.cols || 20,
-    };
+    const response = await fetch(`http://127.0.0.1:8000/api/maps/${mapData._id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newMapData),
+    });
 
-    try {
-      if (!mapData._id) {
-        alert("No map to save (missing ID).");
-        return;
-      }
-
-      const response = await fetch(`http://127.0.0.1:8000/api/maps/${mapData._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mapToSave),
-      });
-
-      if (response.ok) {
-        const updatedMap = await response.json();
-        setTempMapData(updatedMap);
-        alert("Map updated successfully!");
-        handleCloseModal();
-        fetchAvailableMaps();
-        refreshMap();
-        localStorage.setItem("mapData", JSON.stringify(updatedMap)); // Fixed to store updated map
-      } else {
-        alert("Failed to save the map.");
-      }
-    } catch (error) {
-      alert("Error saving map: " + error.message);
+    if (response.ok) {
+      const updatedMap = await response.json();
+      setTempMapData(updatedMap);
+      alert("Map updated successfully!");
+      handleCloseModal();
+      fetchAvailableMaps();
+      refreshMap();
+      localStorage.setItem("mapData", JSON.stringify(updatedMap));
+    } else {
+      alert("Failed to save the map.");
     }
-  };
+  } catch (error) {
+    alert("Error saving map: " + error.message);
+  }
+};
+
 
   const handleDownload = () => {
     const json = JSON.stringify(mapData, null, 2);
@@ -186,23 +202,15 @@ const MapManager = () => {
     }
   };
 
-  const startSimulation = () => {
-    if (mapData && mapData.components) {
-      const robot = mapData.components.find(c => c.type === 'Robot');
-      const shelf = mapData.components.find(c => c.type === 'Shelf');
-      const station = mapData.components.find(c => c.type === 'Station');
-  
-      if (!robot || !shelf || !station) {
-        alert("Please place both a robot, a shelf, and a station first.");
-        return;
-      }
-  
-      setIsEditing(false);
-      setIsModalOpen(false); // Close any modal if open
-      setIsSimulating(true);
-      startRobotMovementSimulation(robot, shelf, station);
-    }
+  const startSimulation = async () => {
+    const response = await fetch("http://127.0.0.1:8000/orders/putaway", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await response.json();
+    console.log(data.message); // Logs: "Putaway order created"
   };
+  
 
   const startRobotMovementSimulation = async (robot, shelf, station) => {
     // Set initial positions
@@ -227,6 +235,139 @@ const MapManager = () => {
   
     setIsSimulating(false); // End simulation
   };
+
+  const generateTables = async () => {
+    if (!tempMapData || !tempMapData.components || !tempMapData.name) {
+      alert("Map not loaded or missing name.");
+      return;
+    }
+  
+    const mapIdMatch = tempMapData.name.match(/Map\s*(M\d+)/i);
+    const mapId = mapIdMatch ? mapIdMatch[1] : "UnknownMap";
+    const { components } = tempMapData;
+  
+    const robots = components.filter(c => c.type.toLowerCase() === 'robot')
+      .map((robot, index) => ({
+        robot_id: `R${index + 1}`,
+        status: 'idle',  // Set the status to "idle" initially
+        location: {
+          x: robot.row,  // Assuming the robot's row corresponds to x coordinate
+          y: robot.col   // Assuming the robot's column corresponds to y coordinate
+        },
+        map_id: mapId,   // Link the robot to the current map
+      }));
+  
+    const shelves = components.filter(c => c.type.toLowerCase() === 'shelf')
+      .map((shelf, index) => ({
+        shelf_id: `S${index + 1}`,
+        map_id: mapId,  // Link the shelf to the current map
+        row: shelf.row,
+        col: shelf.col,
+        status: 'idle',  // Initial status
+        available_space: 100,  // Assuming you want a default value for available space
+        sku_group: 'default_sku_group',  // Default SKU group, can be updated as needed
+      }));
+  
+    const stations = components.filter(c => c.type.toLowerCase() === 'station')
+      .map((station, index) => ({
+        station_id: `ST${index + 1}`,
+        map_id: mapId,  // Link the station to the current map
+        row: station.row,
+        col: station.col,
+        status: 'available',  // Initial status
+        queue_length: 0,  // Default queue length
+        location: { x: station.row, y: station.col },  // Assuming the location is based on the row/column
+      }));
+  
+    // Debugging
+    console.log("Generated Payload:", { robots, shelves, stations });
+  
+    // Send data to backend for saving in MongoDB
+    await sendDataToBackend(mapId, robots, shelves, stations);
+  };
+  
+  const sendDataToBackend = async (mapId, robots, shelves, stations) => {
+    try {
+      // Send robots data
+      for (const robot of robots) {
+        const robotData = { 
+          robot_id: robot.robot_id, 
+          status: robot.status,
+          location: robot.location,
+          map_id: robot.map_id,  // Including map_id in the payload
+        };
+  
+        const response = await fetch('http://127.0.0.1:8000/robots/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(robotData),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error('Failed to save robot data.');
+        }
+      }
+  
+      // Send shelves data
+      for (const shelf of shelves) {
+        const shelfData = {
+          shelf_id: shelf.shelf_id,
+          map_id: shelf.map_id,
+          row: shelf.row,
+          col: shelf.col,
+          status: shelf.status,
+          available_space: shelf.available_space,
+          sku_group: shelf.sku_group,
+        };
+  
+        const response = await fetch('http://127.0.0.1:8000/station/add-shelf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(shelfData),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error('Failed to save shelf data.');
+        }
+      }
+  
+      // Send stations data
+      for (const station of stations) {
+        const stationData = {
+          station_id: station.station_id,
+          map_id: station.map_id,
+          row: station.row,
+          col: station.col,
+          status: station.status,
+          queue_length: station.queue_length,
+          location: station.location,
+        };
+  
+        const response = await fetch('http://127.0.0.1:8000/station/add-putaway-station', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(stationData),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error('Failed to save station data.');
+        }
+      }
+  
+      alert("Data saved successfully.");
+    } catch (error) {
+      console.error("Error sending data:", error);
+      alert('Error sending data to the backend: ' + error.message);
+    }
+  };
+  
+  
   
   // This is the function to simulate movement. You can modify it as needed to update `mapData` based on new robot positions
   const moveTo = async (start, end) => {
@@ -286,6 +427,7 @@ const MapManager = () => {
         <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
         <button onClick={handleDownload}>Download</button>
         <button onClick={handleEdit}>Edit</button>
+        <button onClick={generateTables} style={{ marginTop: '10px' }}>Generate Tables</button>
         <button onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
       </div>
 

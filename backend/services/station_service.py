@@ -26,11 +26,13 @@ class ShelfStatusUpdate(BaseModel):
     shelf_id: str
     available_space: int
     sku_group: str
+    map_id: str  # Added map_id field
 
 class StationLoadUpdate(BaseModel):
     station_id: str
     queue_length: int
     location: Dict[str, float]
+    map_id: str  # Added map_id field
 
 # Utility function to convert MongoDB ObjectId to string for serialization
 def mongo_to_dict(mongo_obj):
@@ -54,7 +56,7 @@ async def update_shelf_status(data: ShelfStatusUpdate):
     """Update shelf status in the database."""
     try:
         await shelf_status.update_one(
-            {"shelf_id": data.shelf_id},
+            {"shelf_id": data.shelf_id, "map_id": data.map_id},  # Ensure map_id is included in update query
             {"$set": data.dict()},
             upsert=True
         )
@@ -67,7 +69,7 @@ async def update_station_load(data: StationLoadUpdate):
     """Update putaway station load in the database."""
     try:
         await putaway_station.update_one(
-            {"station_id": data.station_id},
+            {"station_id": data.station_id, "map_id": data.map_id},  # Ensure map_id is included in update query
             {"$set": data.dict()},
             upsert=True
         )
@@ -79,9 +81,13 @@ async def update_station_load(data: StationLoadUpdate):
 async def add_shelf(data: ShelfStatusUpdate):
     """Add a new shelf to the database."""
     try:
-        existing = await shelf_status.find_one({"shelf_id": data.shelf_id})
+        # Ensure that map_id is provided
+        if not data.map_id:
+            raise HTTPException(status_code=400, detail="Map ID is required")
+        
+        existing = await shelf_status.find_one({"shelf_id": data.shelf_id, "map_id": data.map_id})
         if existing:
-            raise HTTPException(status_code=400, detail="Shelf already exists")
+            raise HTTPException(status_code=400, detail="Shelf already exists for this map")
         
         await shelf_status.insert_one(data.dict())
         return {"message": "Shelf added successfully"}
@@ -92,9 +98,13 @@ async def add_shelf(data: ShelfStatusUpdate):
 async def add_putaway_station(data: StationLoadUpdate):
     """Add a new putaway station to the database."""
     try:
-        existing = await putaway_station.find_one({"station_id": data.station_id})
+        # Ensure that map_id is provided
+        if not data.map_id:
+            raise HTTPException(status_code=400, detail="Map ID is required")
+        
+        existing = await putaway_station.find_one({"station_id": data.station_id, "map_id": data.map_id})
         if existing:
-            raise HTTPException(status_code=400, detail="Putaway station already exists")
+            raise HTTPException(status_code=400, detail="Putaway station already exists for this map")
         
         await putaway_station.insert_one(data.dict())
         return {"message": "Putaway station added successfully"}
