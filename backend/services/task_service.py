@@ -60,56 +60,62 @@ async def get_putaway_tasks(map_id: str):
 
 # Endpoint to generate putaway task with map_id
 @router.post("/task/generate-putaway")
-async def generate_putaway_task(order: PutawayOrder):
+async def generate_putaway_task():
     try:
-        # Use httpx to fetch available robots, shelves, and stations for the specific map_id
         async with httpx.AsyncClient() as client:
-            # Fetch available robots filtered by map_id
-            robots_response = await client.get(f"http://localhost:8000/robots/free?map_id={order.map_id}")
+            # Step 1: Fetch the latest putaway order
+            latest_order_response = await client.get("http://localhost:8000/orders/putaway/latest")
+            if latest_order_response.status_code != 200:
+                raise HTTPException(status_code=404, detail="Failed to fetch latest putaway order")
+
+            latest_order_data = latest_order_response.json()
+            order_id = latest_order_data.get("order_id")
+            map_id = latest_order_data.get("map_id")
+            sku_items = latest_order_data.get("sku_items", [])
+
+            if not order_id or not map_id or not sku_items:
+                raise HTTPException(status_code=400, detail="Incomplete data in latest putaway order")
+
+            # Step 2: Fetch available robots filtered by map_id
+            robots_response = await client.get(f"http://localhost:8000/robots/free?map_id={map_id}")
             robots_data = robots_response.json()
             robots = robots_data.get("robots", [])
             if not robots:
                 raise HTTPException(status_code=404, detail="No available robots for the given map ID")
             robot = sorted(robots, key=lambda r: r["location"]["x"])[0]
 
-            # Fetch available shelves filtered by map_id
-            shelves_response = await client.get(f"http://localhost:8000/station/shelves?map_id={order.map_id}")
+            # Step 3: Fetch available shelves filtered by map_id
+            shelves_response = await client.get(f"http://localhost:8000/station/shelves?map_id={map_id}")
             shelves = shelves_response.json()
             if not shelves or not isinstance(shelves, list):
                 raise HTTPException(status_code=404, detail="No available shelves for the given map ID")
             shelf = sorted(shelves, key=lambda s: s["available_space"], reverse=True)[0]
 
-            # Fetch available putaway stations filtered by map_id
-            stations_response = await client.get(f"http://localhost:8000/station/putaway-stations?map_id={order.map_id}")
+            # Step 4: Fetch available putaway stations filtered by map_id
+            stations_response = await client.get(f"http://localhost:8000/station/putaway-stations?map_id={map_id}")
             stations = stations_response.json()
             if not stations or not isinstance(stations, list):
                 raise HTTPException(status_code=404, detail="No available stations for the given map ID")
             station = sorted(stations, key=lambda s: s["queue_length"])[0]
 
-        # Extract necessary fields and convert to string
-        robot_id = str(robot.get("robot_id"))
-        shelf_id = str(shelf.get("shelf_id"))
-        station_id = str(station.get("station_id"))
-
-        # Create the task including map_id
+        # Step 5: Prepare the task
         task = {
             "task_id": f"TASK_{random.randint(1000, 9999)}",
-            "order_id": order.order_id,
-            "robot_id": robot_id,
-            "shelf_id": shelf_id,
-            "station_id": station_id,
-            "sku_list": [sku.dict() for sku in order.sku_list],
-            "map_id": order.map_id,  # Add the map_id to the task
+            "order_id": order_id,
+            "robot_id": str(robot.get("robot_id")),
+            "shelf_id": str(shelf.get("shelf_id")),
+            "station_id": str(station.get("station_id")),
+            "sku_list": sku_items,
+            "map_id": map_id,
             "status": "pending"
         }
 
-        # Insert the task into MongoDB
+        # Insert task into MongoDB
         result = await putaway_tasks.insert_one(task)
-        task["_id"] = result.inserted_id  # Add ObjectId for response
+        task["_id"] = result.inserted_id
 
-        # Convert the task to a JSON-safe format
+        # Return serialized response
         serializable_task = serialize_dict(task)
-
         return {"message": "Putaway task created", "task": serializable_task}
 
     except Exception as e:

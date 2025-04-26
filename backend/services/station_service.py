@@ -26,13 +26,13 @@ class ShelfStatusUpdate(BaseModel):
     shelf_id: str
     available_space: int
     sku_group: str
-    map_id: str  # Added map_id field
+    map_id: str  # Updated to map_id
 
 class StationLoadUpdate(BaseModel):
     station_id: str
     queue_length: int
     location: Dict[str, float]
-    map_id: str  # Added map_id field
+    map_id: str  # Updated to map_id
 
 # Utility function to convert MongoDB ObjectId to string for serialization
 def mongo_to_dict(mongo_obj):
@@ -56,7 +56,7 @@ async def update_shelf_status(data: ShelfStatusUpdate):
     """Update shelf status in the database."""
     try:
         await shelf_status.update_one(
-            {"shelf_id": data.shelf_id, "map_id": data.map_id},  # Ensure map_id is included in update query
+            {"shelf_id": data.shelf_id, "map_id": data.map_id},  # Updated to map_id
             {"$set": data.dict()},
             upsert=True
         )
@@ -69,7 +69,7 @@ async def update_station_load(data: StationLoadUpdate):
     """Update putaway station load in the database."""
     try:
         await putaway_station.update_one(
-            {"station_id": data.station_id, "map_id": data.map_id},  # Ensure map_id is included in update query
+            {"station_id": data.station_id, "map_id": data.map_id},  # Updated to map_id
             {"$set": data.dict()},
             upsert=True
         )
@@ -81,7 +81,6 @@ async def update_station_load(data: StationLoadUpdate):
 async def add_shelf(data: ShelfStatusUpdate):
     """Add a new shelf to the database."""
     try:
-        # Ensure that map_id is provided
         if not data.map_id:
             raise HTTPException(status_code=400, detail="Map ID is required")
         
@@ -98,7 +97,6 @@ async def add_shelf(data: ShelfStatusUpdate):
 async def add_putaway_station(data: StationLoadUpdate):
     """Add a new putaway station to the database."""
     try:
-        # Ensure that map_id is provided
         if not data.map_id:
             raise HTTPException(status_code=400, detail="Map ID is required")
         
@@ -117,10 +115,7 @@ async def get_shelves():
     try:
         shelves_cursor = shelf_status.find()
         shelves = await shelves_cursor.to_list(length=None)
-
-        # Convert ObjectIds to strings
         shelves = serialize_docs(shelves)
-
         if not shelves:
             raise HTTPException(status_code=404, detail="No shelves available")
         return shelves
@@ -133,10 +128,7 @@ async def get_putaway_stations():
     try:
         stations_cursor = putaway_station.find()
         stations = await stations_cursor.to_list(length=None)
-
-        # Convert ObjectIds to strings
         stations = serialize_docs(stations)
-
         if not stations:
             raise HTTPException(status_code=404, detail="No putaway stations available")
         return stations

@@ -21,6 +21,7 @@ const MapManager = () => {
   const [shelfPos, setShelfPos] = useState({ row: 0, col: 0 });
   const [shelfOriginalPos, setShelfOriginalPos] = useState({ row: 0, col: 0 });
   const fileInputRef = useRef(null);
+  const [currentMapId, setCurrentMapId] = useState(null);
 
   const fetchAvailableMaps = async () => {
     try {
@@ -181,6 +182,7 @@ const MapManager = () => {
           setTempMapData(map);
           setIsLoadModalOpen(false);
           localStorage.setItem("mapData", JSON.stringify(map));
+          setCurrentMapId(mapId); // <<=== Save the loaded map ID
         } else {
           alert("Map data is missing or incomplete.");
         }
@@ -209,6 +211,10 @@ const MapManager = () => {
     });
     const data = await response.json();
     console.log(data.message); // Logs: "Putaway order created"
+
+    // Look at the latest putaway order, extract the relevant details such as SKU, amount, 
+
+    // Then look at the tables for robot, shelves and stations to know spread out and assign the tasks for the putaway task. 
   };
   
 
@@ -237,54 +243,51 @@ const MapManager = () => {
   };
 
   const generateTables = async () => {
-    if (!tempMapData || !tempMapData.components || !tempMapData.name) {
-      alert("Map not loaded or missing name.");
+
+
+    if (!tempMapData || !tempMapData.components || !currentMapId) {
+      alert("Map not loaded or missing map ID.");
       return;
     }
   
-    const mapIdMatch = tempMapData.name.match(/Map\s*(M\d+)/i);
-    const mapId = mapIdMatch ? mapIdMatch[1] : "UnknownMap";
+    const mapId = currentMapId; // <=== Use the correct current map ID
     const { components } = tempMapData;
   
     const robots = components.filter(c => c.type.toLowerCase() === 'robot')
       .map((robot, index) => ({
         robot_id: `R${index + 1}`,
-        status: 'idle',  // Set the status to "idle" initially
-        location: {
-          x: robot.row,  // Assuming the robot's row corresponds to x coordinate
-          y: robot.col   // Assuming the robot's column corresponds to y coordinate
-        },
-        map_id: mapId,   // Link the robot to the current map
+        status: 'idle',
+        location: { x: robot.row, y: robot.col },
+        map_id: mapId,
       }));
   
     const shelves = components.filter(c => c.type.toLowerCase() === 'shelf')
       .map((shelf, index) => ({
         shelf_id: `S${index + 1}`,
-        map_id: mapId,  // Link the shelf to the current map
+        map_id: mapId,
         row: shelf.row,
         col: shelf.col,
-        status: 'idle',  // Initial status
-        available_space: 100,  // Assuming you want a default value for available space
-        sku_group: 'default_sku_group',  // Default SKU group, can be updated as needed
+        status: 'idle',
+        available_space: 100,
+        sku_group: 'default_sku_group',
       }));
   
     const stations = components.filter(c => c.type.toLowerCase() === 'station')
       .map((station, index) => ({
         station_id: `ST${index + 1}`,
-        map_id: mapId,  // Link the station to the current map
+        map_id: mapId,
         row: station.row,
         col: station.col,
-        status: 'available',  // Initial status
-        queue_length: 0,  // Default queue length
-        location: { x: station.row, y: station.col },  // Assuming the location is based on the row/column
+        status: 'available',
+        queue_length: 0,
+        location: { x: station.row, y: station.col },
       }));
   
-    // Debugging
     console.log("Generated Payload:", { robots, shelves, stations });
   
-    // Send data to backend for saving in MongoDB
     await sendDataToBackend(mapId, robots, shelves, stations);
   };
+  
   
   const sendDataToBackend = async (mapId, robots, shelves, stations) => {
     try {
@@ -321,6 +324,7 @@ const MapManager = () => {
           available_space: shelf.available_space,
           sku_group: shelf.sku_group,
         };
+
   
         const response = await fetch('http://127.0.0.1:8000/station/add-shelf', {
           method: 'POST',
@@ -366,8 +370,6 @@ const MapManager = () => {
       alert('Error sending data to the backend: ' + error.message);
     }
   };
-  
-  
   
   // This is the function to simulate movement. You can modify it as needed to update `mapData` based on new robot positions
   const moveTo = async (start, end) => {
