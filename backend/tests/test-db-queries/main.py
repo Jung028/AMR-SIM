@@ -66,10 +66,9 @@ async def get_map_by_id(map_id: str):
         if not map_data:
             raise HTTPException(status_code=404, detail="Map not found")
         
-        map_data["_id"] = str(map_data["_id"])  # Convert ObjectId to str
-        return map_data
+        return convert_object_ids(map_data)  # ✅ Fix here
     except Exception as e:
-        print(f"Error loading map: {e}")  # Log the error
+        print(f"Error loading map: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.post("/api/maps")

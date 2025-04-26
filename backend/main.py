@@ -13,6 +13,14 @@ import os
 from dotenv import load_dotenv  # Import the dotenv module
 from pymongo import MongoClient
 
+from services.inventory_service import router as inventory_router
+from services.order_service import router as order_router
+from services.task_service import router as task_router
+from services.robot_service import router as robot_router
+from services.station_service import router as station_router
+
+
+
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -70,8 +78,8 @@ MONGO_URI = os.getenv("MONGO_URI")  # Fetch the MongoDB URI from the environment
 
 # Initialize MongoDB client using Atlas URI
 client = AsyncIOMotorClient(MONGO_URI)
-db = client["map"]  # Database name
-maps_collection = db["map"]  # Collection name
+db_map = client["map"]  # Database name
+maps_collection = db_map["map"]  # Collection name
 
 # Pydantic models
 class Component(BaseModel):
@@ -204,9 +212,14 @@ async def upload_map(file: UploadFile = File(...)):
 # ~~~~ END ~~~~
 
 
-sku_collection = db['sku']
-putaway_collection = db['putaway']
-picking_collection = db['picking']
+# ~~~~ SIMULATION ENDPOINTS ~~~~
+
+db_sim = client["sim"]  # Database name
+
+
+sku_collection = db_sim['sku']
+putaway_collection = db_sim['putaway']
+picking_collection = db_sim['picking']
 
 
 # Pydantic model
@@ -248,4 +261,22 @@ async def save_picking(data: SKURequest):
         return {"message": "Picking data saved successfully", "sku_id": str(result.inserted_id)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error saving picking data: {str(e)}")
+
+
+# ~~~~ END ~~~~
+
+
+# ~~~~ Routers ~~~~
+
+
+# Include the routers
+app.include_router(inventory_router)
+app.include_router(order_router)
+app.include_router(task_router)
+app.include_router(robot_router)
+app.include_router(station_router)
+
+
+# ~~~~ END ~~~~
+
 

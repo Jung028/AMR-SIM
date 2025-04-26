@@ -1,0 +1,161 @@
+/* Body and overall page styling for dark mode */
+body {
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text for readability */
+    font-family: 'Helvetica Neue', sans-serif; /* Clean and modern font */
+    margin: 0;
+    padding: 0;
+  }
+  
+  .home-container {
+    padding: 20px;
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+  
+  /* Putaway Tasks Table Styling */
+  .putaway-tasks-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Darker shadow for a sleek look */
+  }
+  
+  .putaway-tasks-table th, .putaway-tasks-table td {
+    border: 1px solid #333; /* Dark border for table cells */
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 14px;
+    border-color: white;
+  }
+  
+  .putaway-tasks-table th {
+    background-color: #1c1c1c; /* Dark background for headers */
+    color: #f5f5f5; /* Light text for contrast */
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .putaway-tasks-table td {
+    background-color: #1f1f1f; /* Dark background for cells */
+    color: #e0e0e0; /* Light text for readability */
+  }
+  
+  .putaway-tasks-table tr:nth-child(even) {
+    background-color: #2a2a2a; /* Slightly lighter dark rows for alternating effect */
+  }
+  
+  .putaway-tasks-table tr:hover {
+    background-color: #333; /* Darker row color on hover */
+  }
+  
+  .putaway-tasks-table td ul {
+    padding-left: 20px;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  
+  .putaway-tasks-table td ul li {
+    margin-bottom: 5px;
+    list-style-type: disc;
+  }
+  
+  .putaway-tasks-table td ul li:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Status Classes for better visibility */
+  .putaway-tasks-table .status-pending {
+    color: #ff9800; /* Orange for pending status */
+    font-weight: bold;
+  }
+  
+  .putaway-tasks-table .status-completed {
+    color: #4caf50; /* Green for completed status */
+    font-weight: bold;
+  }
+  
+  .putaway-tasks-table .status-failed {
+    color: #f44336; /* Red for failed status */
+    font-weight: bold;
+  }
+  
+  /* Task ID and Order ID Styling */
+  .putaway-tasks-table .task-id {
+    font-weight: bold;
+    color: #03a9f4; /* Blue for task IDs */
+  }
+  
+  .putaway-tasks-table .order-id {
+    font-style: italic;
+    color: #b0bec5; /* Grayish color for order ID */
+  }
+  
+  /* Button and other UI Elements */
+  button {
+    background-color: #333; /* Dark button background */
+    color: #e0e0e0; /* Light text for contrast */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  button:hover {
+    background-color: #444; /* Slightly lighter on hover */
+  }
+  
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 3px 2px rgba(0, 132, 255, 0.6); /* Focus outline effect */
+  }
+  
+  /* Add subtle shadow effect for better visual separation */
+  .card {
+    background-color: #1c1c1c;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* General links styling */
+  a {
+    color: #03a9f4; /* Blue links */
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Start Simulation Button */
+  .start-button {
+    background-color: #0073e6;
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .start-button:hover {
+    background-color: #005bb5;
+  }
+  
+  /* Wrapper to enable horizontal scrolling */
+  .table-container {
+    overflow-x: auto; /* Enables horizontal scrolling if content overflows */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    margin-bottom: 20px; /* Optional: Adds space below the table */
+  }
+  
+  /* Table Styles for mobile responsiveness */
+  @media (max-width: 768px) {
+    .putaway-tasks-table th, .putaway-tasks-table td {
+      font-size: 12px; /* Smaller font for better mobile view */
+      padding: 8px 10px; /* Adjust padding */
+    }
+  }
+  
