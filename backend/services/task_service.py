@@ -82,7 +82,7 @@ async def generate_putaway_task():
 
         
             # Step 2: Fetch available robots filtered by map_id
-            robots_response = await client.get(f"http://localhost:8000/robots/free?map_id={map_id}")
+            robots_response = await client.get(f"http://localhost:8000/robots/idle?map_id={map_id}")
             robots_data = robots_response.json()
             robots = robots_data.get("robots", [])
             if not robots:
