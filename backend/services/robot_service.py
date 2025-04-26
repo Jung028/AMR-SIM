@@ -60,7 +60,7 @@ async def update_robot_status(data: RobotHeartbeat):
 @router.get("/robots/idle", response_model=Dict[str, List[RobotOut]])
 async def get_idle_robots(map_id: str = Query(..., description="Map ID to filter robots")):
     # Fetch robots that are 'idle' or for the given map_id
-    robots = await robot_status.find({"status": {"$in": "idle"}, "map_id": map_id}).to_list(length=None)
+    robots = await robot_status.find({"status": {"$in": ["idle"]}, "map_id": map_id}).to_list(length=None)
     return {"robots": robots}
 
 
