@@ -29,7 +29,7 @@ class SKUItem(BaseModel):
 
 # Request model with map_id
 class PutawayOrder(BaseModel):
-    order_id: str
+    putaway_order_code: str
     sku_list: List[SKUItem]
     map_id: str  # Added map_id field
 
@@ -63,19 +63,24 @@ async def get_putaway_tasks(map_id: str):
 async def generate_putaway_task():
     try:
         async with httpx.AsyncClient() as client:
+
+            
             # Step 1: Fetch the latest putaway order
             latest_order_response = await client.get("http://localhost:8000/orders/putaway/latest")
-            if latest_order_response.status_code != 200:
-                raise HTTPException(status_code=404, detail="Failed to fetch latest putaway order")
-
+            latest_order_response.raise_for_status()
             latest_order_data = latest_order_response.json()
-            order_id = latest_order_data.get("order_id")
-            map_id = latest_order_data.get("map_id")
-            sku_items = latest_order_data.get("sku_items", [])
 
-            if not order_id or not map_id or not sku_items:
+            # Go inside 'body' -> 'orders' -> first order
+            order = latest_order_data.get("body", {}).get("orders", [{}])[0]
+
+            putaway_order_code = order.get("order_details", {}).get("putaway_order_code")
+            map_id = order.get("order_details", {}).get("map_id")
+            sku_items = order.get("sku_items", [])
+
+            if not putaway_order_code or not map_id or not sku_items:
                 raise HTTPException(status_code=400, detail="Incomplete data in latest putaway order")
 
+        
             # Step 2: Fetch available robots filtered by map_id
             robots_response = await client.get(f"http://localhost:8000/robots/free?map_id={map_id}")
             robots_data = robots_response.json()
@@ -101,7 +106,7 @@ async def generate_putaway_task():
         # Step 5: Prepare the task
         task = {
             "task_id": f"TASK_{random.randint(1000, 9999)}",
-            "order_id": order_id,
+            "putaway_order_code": putaway_order_code,
             "robot_id": str(robot.get("robot_id")),
             "shelf_id": str(shelf.get("shelf_id")),
             "station_id": str(station.get("station_id")),

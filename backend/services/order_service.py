@@ -29,6 +29,7 @@ class OrderDetails(BaseModel):
     order_type: int
     inbound_wave_code: str
     owner_code: str
+    map_id: str
     print: PrintInfo
     carrier: CarrierInfo
     dates: DatesInfo
@@ -64,6 +65,9 @@ class PickRequest(BaseModel):
     sku_list: list
     priority: Optional[str]
 
+class PutawayOrderRequest(BaseModel):
+    currentMapId: str
+
 # FastAPI router
 load_dotenv()
 
@@ -87,7 +91,7 @@ sku_per_hour_per_station = 14.5
 average_number_of_skus_per_order = 5
 
 # Generate random data for putaway order
-def generate_putaway_order():
+def generate_putaway_order(currentMapId):
     # Randomly generate a new putaway_order_code
     order_code = f"pa{str(uuid.uuid4().hex[:6]).upper()}"
     
@@ -97,6 +101,7 @@ def generate_putaway_order():
         "order_type": random.choice([0, 1]),  # Random order type (0 or 1)
         "inbound_wave_code": f"wave_in_{random.randint(2020001, 2029999)}",
         "owner_code": random.choice(["lidong", "owner2", "owner3"]),
+        "map_id": currentMapId,  # Add map_id to the order details
         "print": {
             "type": random.choice([1, 2]),
             "content": '[{"field1":"value1"}]'
@@ -148,9 +153,12 @@ def generate_putaway_order():
 
 # Endpoints
 @router.post("/orders/putaway")
-async def create_putaway_order():
+async def create_putaway_order(request: PutawayOrderRequest):
+
+    currentMapId = request.currentMapId  # Get currentMapId from the request
+
     # Generate the putaway order
-    new_order = generate_putaway_order()
+    new_order = generate_putaway_order(currentMapId)
 
     # Convert to dictionary and insert into MongoDB
     order_dict = new_order.dict()

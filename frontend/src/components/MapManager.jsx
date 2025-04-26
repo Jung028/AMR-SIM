@@ -208,15 +208,23 @@ const MapManager = () => {
     const response = await fetch("http://127.0.0.1:8000/orders/putaway", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentMapId: currentMapId }) // <=== ADD THIS
+
     });
     const data = await response.json();
     console.log(data.message); // Logs: "Putaway order created"
 
-    // Look at the latest putaway order, extract the relevant details such as SKU, amount, 
+    // Step 2: Generate putaway tasks (AFTER creating the order)
+    const taskResponse = await fetch("http://127.0.0.1:8000/task/generate-putaway", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
 
-    // Then look at the tables for robot, shelves and stations to know spread out and assign the tasks for the putaway task. 
+    const taskData = await taskResponse.json();
+    console.log(taskData.message); // Logs: "Putaway tasks generated" or similar
+    
   };
-  
+
 
   const startRobotMovementSimulation = async (robot, shelf, station) => {
     // Set initial positions
