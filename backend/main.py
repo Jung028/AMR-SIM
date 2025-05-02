@@ -29,7 +29,7 @@ app = FastAPI()
 # Allow origins for CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or ["*"] for development
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:8000"],  # or ["*"] for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -210,7 +210,17 @@ async def upload_map(file: UploadFile = File(...)):
 
 
 # ~~~~ END ~~~~
+from bson import ObjectId
 
+# Helper function to convert ObjectId to string
+def convert_objectid(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {key: convert_objectid(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [convert_objectid(item) for item in obj]
+    return obj
 
 # ~~~~ SIMULATION ENDPOINTS ~~~~
 
@@ -241,6 +251,65 @@ async def save_sku(data: SKURequest):
         return {"message": "SKU data saved successfully", "sku_id": str(result.inserted_id)}
     except Exception as e:
         raise HTTPException(status_code=400, detail="Error saving SKU data: " + str(e))
+    
+
+# GET method for SKU collection
+@app.get("/get-sku/{sku_id}")
+async def get_sku(sku_id: str):
+    try:
+        # Searching within the sku_list array where sku_id matches
+        sku = await sku_collection.find_one({"body.sku_list.sku_id": sku_id})
+        
+        if sku is None:
+            raise HTTPException(status_code=404, detail=f"SKU {sku_id} not found")
+        
+        # You might want to extract only the relevant data inside the body.sku_list
+        sku_data = next((item for item in sku["body"]["sku_list"] if item["sku_id"] == sku_id), None)
+        
+        if sku_data is None:
+            raise HTTPException(status_code=404, detail=f"SKU {sku_id} not found in sku_list")
+        
+        return {"sku_id": sku_id, "sku_data": sku_data}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching SKU data: " + str(e))
+
+
+# GET method for Putaway collection
+@app.get("/get-putaway/{putaway_id}")
+async def get_putaway(putaway_id: str):
+    try:
+        putaway = await putaway_collection.find_one({"_id": putaway_id})
+        if putaway is None:
+            raise HTTPException(status_code=404, detail="Putaway data not found")
+        return {"putaway_id": putaway_id, "putaway_data": putaway}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching Putaway data: " + str(e))
+
+# GET method for Picking collection
+@app.get("/get-picking/{picking_id}")
+async def get_picking(picking_id: str):
+    try:
+        picking = await picking_collection.find_one({"_id": picking_id})
+        if picking is None:
+            raise HTTPException(status_code=404, detail="Picking data not found")
+        return {"picking_id": picking_id, "picking_data": picking}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching Picking data: " + str(e))
+
+# GET method for all SKUs (optional)
+@app.get("/get-all-skus")
+async def get_all_skus(skip: int = 0, limit: int = 10):
+    try:
+        # Fetching SKUs from the collection
+        skus = await sku_collection.find().skip(skip).limit(limit).to_list(length=limit)
+        
+        # Convert ObjectId to string for each SKU
+        skus = convert_objectid(skus)
+
+        return {"skus": skus}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error fetching SKUs: " + str(e))
 
 # Save putaway
 @app.post("/save-putaway/")

@@ -58,19 +58,18 @@ async def get_putaway_tasks(map_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error fetching putaway tasks")
 
-# Endpoint to generate putaway task with map_id
+
+
+
+
 @router.post("/task/generate-putaway")
 async def generate_putaway_task():
     try:
         async with httpx.AsyncClient() as client:
-
-            
-            # Step 1: Fetch the latest putaway order
+            # Step 1: Fetch latest putaway order
             latest_order_response = await client.get("http://localhost:8000/orders/putaway/latest")
             latest_order_response.raise_for_status()
             latest_order_data = latest_order_response.json()
-
-            # Go inside 'body' -> 'orders' -> first order
             order = latest_order_data.get("body", {}).get("orders", [{}])[0]
 
             putaway_order_code = order.get("order_details", {}).get("putaway_order_code")
@@ -80,48 +79,82 @@ async def generate_putaway_task():
             if not putaway_order_code or not map_id or not sku_items:
                 raise HTTPException(status_code=400, detail="Incomplete data in latest putaway order")
 
-        
             # Step 2: Fetch available robots filtered by map_id
             robots_response = await client.get(f"http://localhost:8000/robots/idle?map_id={map_id}")
             robots_data = robots_response.json()
             robots = robots_data.get("robots", [])
             if not robots:
-                raise HTTPException(status_code=404, detail="No available robots for the given map ID")
+                raise HTTPException(status_code=404, detail="No available robots")
             robot = sorted(robots, key=lambda r: r["location"]["x"])[0]
 
-            # Step 3: Fetch available shelves filtered by map_id
+            # Step 3: Fetch available shelves and SKU dimensions
             shelves_response = await client.get(f"http://localhost:8000/station/shelves?map_id={map_id}")
             shelves = shelves_response.json()
-            if not shelves or not isinstance(shelves, list):
-                raise HTTPException(status_code=404, detail="No available shelves for the given map ID")
-            shelf = sorted(shelves, key=lambda s: s["available_space"], reverse=True)[0]
+            if not shelves:
+                raise HTTPException(status_code=404, detail="No shelves found")
 
-            # Step 4: Fetch available putaway stations filtered by map_id
+            sku_dimensions = {}
+            for sku in sku_items:
+                sku_id = sku["sku_id"]
+                
+                # Fetch SKU data from the new get_sku API route
+                sku_info_response = await client.get(f"http://localhost:8000/get-sku/{sku_id}")
+                sku_info_data = sku_info_response.json()
+                if "sku_data" not in sku_info_data:
+                    raise HTTPException(status_code=404, detail=f"SKU {sku_id} not found")
+                sku_dimensions[sku_id] = sku_info_data["sku_data"].get("dimension", 0.0)
+
+            # Step 4: Choose the shelf that can fit all SKUs in level order
+            shelf_selected = None
+            for shelf in sorted(shelves, key=lambda s: s["available_space"], reverse=True):
+                for sku in sku_items:
+                    sku_id = sku["sku_id"]
+                    amount = sku["amount"]
+                    volume_per_item = sku_dimensions.get(sku_id, 0.0)
+                    total_volume = volume_per_item * amount
+
+                    placed = False
+                    for level_name in ["third", "second", "ground"]:
+                        level = shelf["shelf_levels"].get(level_name)
+                        if level and level["available_space"] >= total_volume:
+                            level["available_space"] -= total_volume
+                            level["sku_details"].append({"sku_id": sku_id, "amount": amount})
+                            shelf["available_space"] -= total_volume
+                            placed = True
+                            break
+
+                    if not placed:
+                        break  # try next shelf
+                else:
+                    shelf_selected = shelf
+                    break  # all SKUs placed
+
+            if not shelf_selected:
+                raise HTTPException(status_code=400, detail="No shelf has enough space for all SKU items")
+
+            # Step 5: Fetch available stations
             stations_response = await client.get(f"http://localhost:8000/station/putaway-stations?map_id={map_id}")
             stations = stations_response.json()
-            if not stations or not isinstance(stations, list):
-                raise HTTPException(status_code=404, detail="No available stations for the given map ID")
+            if not stations:
+                raise HTTPException(status_code=404, detail="No stations found")
             station = sorted(stations, key=lambda s: s["queue_length"])[0]
 
-        # Step 5: Prepare the task
+        # Step 6: Create task
         task = {
             "task_id": f"TASK_{random.randint(1000, 9999)}",
             "putaway_order_code": putaway_order_code,
             "robot_id": str(robot.get("robot_id")),
-            "shelf_id": str(shelf.get("shelf_id")),
-            "station_id": str(station.get("station_id")),
+            "shelf_id": shelf_selected.get("shelf_id"),
+            "station_id": station.get("station_id"),
             "sku_list": sku_items,
             "map_id": map_id,
             "status": "pending"
         }
 
-        # Insert task into MongoDB
         result = await putaway_tasks.insert_one(task)
         task["_id"] = result.inserted_id
 
-        # Return serialized response
-        serializable_task = serialize_dict(task)
-        return {"message": "Putaway task created", "task": serializable_task}
+        return {"message": "Putaway task created", "task": serialize_dict(task)}
 
     except Exception as e:
         print(f"Error: {str(e)}")

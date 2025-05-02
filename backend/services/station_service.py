@@ -22,11 +22,17 @@ putaway_station = db_station["putaway_station"]
 router = APIRouter()
 
 # Models
+class ShelfLevelDetails(BaseModel):
+    available_space: float
+    sku_details: list[Dict[str, int]]  # List of dictionaries with sku_id and quantity
+
 class ShelfStatusUpdate(BaseModel):
     shelf_id: str
-    available_space: int
-    sku_group: str
-    map_id: str  # Updated to map_id
+    shelf_capacity: float
+    available_space: float
+    shelf_levels: Dict[str, ShelfLevelDetails]  # Dictionary with level names (e.g., 'ground', 'second', 'third')
+    map_id: str
+
 
 class StationLoadUpdate(BaseModel):
     station_id: str
@@ -55,14 +61,29 @@ def serialize_docs(docs):
 async def update_shelf_status(data: ShelfStatusUpdate):
     """Update shelf status in the database."""
     try:
-        await shelf_status.update_one(
-            {"shelf_id": data.shelf_id, "map_id": data.map_id},  # Updated to map_id
-            {"$set": data.dict()},
+        update_data = {
+            "shelf_capacity": data.shelf_capacity,
+            "available_space": data.available_space,
+            "shelf_levels": data.shelf_levels,
+            "map_id": data.map_id
+        }
+        
+        result = await shelf_status.update_one(
+            {"shelf_id": data.shelf_id, "map_id": data.map_id},
+            {"$set": update_data},
             upsert=True
         )
-        return {"message": "Shelf status updated"}
+        
+        if result.modified_count > 0:
+            return {"message": "Shelf status updated successfully"}
+        elif result.upserted_id:
+            return {"message": "Shelf created successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="No changes made to shelf status")
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating shelf status: {str(e)}")
+
 
 @router.post("/station/load/update")
 async def update_station_load(data: StationLoadUpdate):
@@ -84,10 +105,12 @@ async def add_shelf(data: ShelfStatusUpdate):
         if not data.map_id:
             raise HTTPException(status_code=400, detail="Map ID is required")
         
+        # Check if the shelf already exists for the given map_id
         existing = await shelf_status.find_one({"shelf_id": data.shelf_id, "map_id": data.map_id})
         if existing:
             raise HTTPException(status_code=400, detail="Shelf already exists for this map")
         
+        # Insert the new shelf document
         await shelf_status.insert_one(data.dict())
         return {"message": "Shelf added successfully"}
     except Exception as e:
@@ -116,11 +139,14 @@ async def get_shelves():
         shelves_cursor = shelf_status.find()
         shelves = await shelves_cursor.to_list(length=None)
         shelves = serialize_docs(shelves)
+        
         if not shelves:
             raise HTTPException(status_code=404, detail="No shelves available")
+        
         return shelves
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching shelves: {str(e)}")
+
 
 @router.get("/station/putaway-stations")
 async def get_putaway_stations():
