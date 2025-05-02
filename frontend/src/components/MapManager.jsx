@@ -323,29 +323,50 @@ const MapManager = () => {
   
       // Send shelves data
       for (const shelf of shelves) {
+        // Ensure shelf_levels is a properly structured nested object
+        const shelfLevels = shelf.shelf_levels || {
+          ground: {
+            available_space: shelf.available_space || 0,
+            sku_details: []
+          },
+          second: {
+            available_space: 0,
+            sku_details: []
+          },
+          third: {
+            available_space: 0,
+            sku_details: []
+          }
+        };
+      
         const shelfData = {
           shelf_id: shelf.shelf_id,
           map_id: shelf.map_id,
-          row: shelf.row,
-          col: shelf.col,
-          status: shelf.status,
-          available_space: shelf.available_space,
-          sku_group: shelf.sku_group,
+          shelf_capacity: shelf.shelf_capacity || 1000,
+          available_space: shelf.available_space || 0,
+          shelf_levels: shelfLevels,
         };
-
-  
-        const response = await fetch('http://127.0.0.1:8000/station/add-shelf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(shelfData),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error response:', errorData);
-          throw new Error('Failed to save shelf data.');
+      
+        try {
+          console.log("Sending shelfData:", shelfData); // Debug log
+      
+          const response = await fetch('http://127.0.0.1:8000/station/add-shelf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(shelfData),
+          });
+      
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error response:', errorData);
+            throw new Error('Failed to save shelf data.');
+          }
+        } catch (error) {
+          console.error('Error sending data:', error);
         }
       }
+      
+      
   
       // Send stations data
       for (const station of stations) {
