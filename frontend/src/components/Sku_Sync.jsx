@@ -103,10 +103,13 @@ const Sku_Sync = ({ isOpen, closeModal }) => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    try {
-      const parsed = JSON.parse(code); // Attempt to parse the JSON
+    setError(null);
+    console.log("🔍 Attempting to save JSON");
   
-      // Send the data to the FastAPI backend using fetch
+    try {
+      const parsed = JSON.parse(code);
+      console.log("✅ Parsed JSON:", parsed);
+  
       const response = await fetch("http://localhost:8000/save-sku/", {
         method: "POST",
         headers: {
@@ -115,19 +118,27 @@ const Sku_Sync = ({ isOpen, closeModal }) => {
         body: JSON.stringify(parsed),
       });
   
-      if (response.ok) {
-        alert("✅ JSON saved!");
-        closeModal();  // Close the modal after successful save
+      const text = await response.text(); // Even on error, get the full body
+      console.log("📥 Server response text:", text);
+  
+      if (!response.ok) {
+        setError(`❌ Server returned ${response.status}: ${text}`);
+        console.error("❌ Bad Request - Backend rejected payload", {
+          status: response.status,
+          body: parsed,
+        });
       } else {
-        alert("❌ Failed to save SKU data!");
+        alert("✅ JSON saved successfully!");
+        closeModal();
       }
     } catch (err) {
-      setError("❌ Invalid JSON format! Please check the format of your input.");
-      console.error("JSON Parse Error: ", err);  // Log the error for debugging
+      setError("❌ Invalid JSON or server error. See console for details.");
+      console.error("❌ Exception caught:", err);
     } finally {
       setIsSaving(false);
     }
   };
+  
 
   return (
     <div className="modal">

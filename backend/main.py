@@ -237,7 +237,7 @@ class SimulationRequest(BaseModel):
 async def save_sku(data: SKURequest):
     try:
         sku_data = {"header": data.header, "body": data.body}
-        result = sku_collection.insert_one(sku_data)
+        result = await sku_collection.insert_one(sku_data)
         return {"message": "SKU data saved successfully", "sku_id": str(result.inserted_id)}
     except Exception as e:
         raise HTTPException(status_code=400, detail="Error saving SKU data: " + str(e))
