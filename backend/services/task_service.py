@@ -58,8 +58,14 @@ async def get_putaway_tasks(map_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error fetching putaway tasks")
 
+
+
+
+
 @router.post("/task/generate-putaway")
 async def generate_putaway_task():
+    MAX_TASKS_PER_ROBOT = 3  # Limit of tasks per robot
+
     try:
         async with httpx.AsyncClient() as client:
             print("Fetching latest putaway order...")
@@ -83,7 +89,11 @@ async def generate_putaway_task():
             robots = robots_data.get("robots", [])
             if not robots:
                 raise HTTPException(status_code=404, detail="No available robots")
-            robot = sorted(robots, key=lambda r: r["location"]["x"])[0]
+
+            # Initialize robot task tracking
+            robot_task_counts = {robot["robot_id"]: 0 for robot in robots}
+            sorted_robots = sorted(robots, key=lambda r: r["location"]["x"])  # Sort by location
+            robot_index = 0
 
             print("Fetching available shelves...")
             shelves_response = await client.get(f"http://localhost:8000/station/shelves?map_id={map_id}")
@@ -153,10 +163,26 @@ async def generate_putaway_task():
                                 raise HTTPException(status_code=404, detail="No stations found")
                             station = sorted(stations, key=lambda s: s["queue_length"])[0]
 
+                            # Assign robot that hasn't reached task limit
+                            assigned_robot = None
+                            for _ in range(len(sorted_robots)):
+                                current_robot = sorted_robots[robot_index]
+                                robot_id = current_robot["robot_id"]
+
+                                if robot_task_counts[robot_id] < MAX_TASKS_PER_ROBOT:
+                                    assigned_robot = current_robot
+                                    robot_task_counts[robot_id] += 1
+                                    break
+                                else:
+                                    robot_index = (robot_index + 1) % len(sorted_robots)
+
+                            if not assigned_robot:
+                                raise HTTPException(status_code=500, detail="Not enough robot capacity to assign all tasks")
+
                             task = {
                                 "task_id": f"TASK_{random.randint(1000, 9999)}",
                                 "putaway_order_code": putaway_order_code,
-                                "robot_id": str(robot.get("robot_id")),
+                                "robot_id": str(assigned_robot.get("robot_id")),
                                 "station_id": station.get("station_id"),
                                 "map_id": map_id,
                                 "shelf_id": shelf.get("shelf_id"),
