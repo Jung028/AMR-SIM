@@ -321,41 +321,68 @@ const MapManager = () => {
         }
       }
   
-      // Send shelves data
+            // Send shelves data
       for (const shelf of shelves) {
-        // Ensure shelf_levels is a properly structured nested object
-        const shelfLevels = shelf.shelf_levels || {
+        // Shelf total volume (capacity)
+        const shelfTotalVolume = shelf.shelf_capacity || 41184; // Total capacity of the shelf (in volume)
+
+        // Set available space to 1/3 of the total shelf volume
+        const availableSpace = shelfTotalVolume / 3; // Available space is 1/3 of total volume
+
+        // Shelf levels structure, each level gets the same available space
+        const shelfLevels = {
           ground: {
-            available_space: shelf.available_space || 0,
+            available_space: availableSpace, // 1/3 of the shelf volume for ground
             sku_details: []
           },
           second: {
-            available_space: 0,
+            available_space: availableSpace, // 1/3 for second level
             sku_details: []
           },
           third: {
-            available_space: 0,
+            available_space: availableSpace, // 1/3 for third level
             sku_details: []
           }
         };
-      
+
+        // Calculate the total available space by subtracting the space used by placed SKUs
+        let totalUsedSpace = 0;
+        const skusToPlace = shelf.sku_details || [];
+
+        // Loop through each SKU to calculate the space used
+        for (const sku of skusToPlace) {
+          const skuVolume = sku.sku_volume; // Assuming each SKU has a volume property
+          totalUsedSpace += skuVolume * sku.sku_amount; // Total space used by this SKU (considering amount)
+        }
+
+        // Subtract the used space from the shelf total volume to get the remaining available space
+        const remainingSpace = shelfTotalVolume - totalUsedSpace;
+
+        // Ensure remaining space is not less than 0
+        const finalAvailableSpace = Math.max(remainingSpace, 0);
+
+        // Adjust the shelf levels with the remaining available space (keeping each level proportional)
+        shelfLevels.ground.available_space = finalAvailableSpace / 3; // Divide remaining space equally across 3 levels
+        shelfLevels.second.available_space = finalAvailableSpace / 3; 
+        shelfLevels.third.available_space = finalAvailableSpace / 3;
+
         const shelfData = {
           shelf_id: shelf.shelf_id,
           map_id: shelf.map_id,
-          shelf_capacity: shelf.shelf_capacity || 1000,
-          available_space: shelf.available_space || 0,
-          shelf_levels: shelfLevels,
+          shelf_capacity: shelf.shelf_capacity || 41184, // Shelf capacity remains the same
+          available_space: finalAvailableSpace, // Total remaining available space in shelf
+          shelf_levels: shelfLevels, // Updated shelf levels with available space
         };
-      
+
         try {
           console.log("Sending shelfData:", shelfData); // Debug log
-      
+
           const response = await fetch('http://127.0.0.1:8000/station/add-shelf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(shelfData),
           });
-      
+
           if (!response.ok) {
             const errorData = await response.json();
             console.error('Error response:', errorData);
@@ -365,7 +392,7 @@ const MapManager = () => {
           console.error('Error sending data:', error);
         }
       }
-      
+
       
   
       // Send stations data

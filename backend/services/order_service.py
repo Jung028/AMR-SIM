@@ -218,8 +218,9 @@ async def get_latest_putaway_order():
 @router.get("/orders/putaway/by-code/{putaway_order_code}")
 async def get_putaway_order_by_code(putaway_order_code: str):
     order = await putaway_orders.find_one({
-        "body.orders.0.order_details.putaway_order_code": putaway_order_code
+        "body.orders.order_details.putaway_order_code": putaway_order_code
     })
+
     if not order:
         raise HTTPException(status_code=404, detail="Putaway order not found")
     order["_id"] = str(order["_id"])
