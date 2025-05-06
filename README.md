@@ -50,7 +50,7 @@
 ![Throughput Calculator](https://github.com/user-attachments/assets/27b400f7-56fa-40fd-96b2-0cc24ca4d571)
 
 ### Custom Map Grid  
-![Map Grid](https://github.com/user-attachments/assets/87bcca47-eea8-412b-83e2-fe1e3d9d8720)
+<img width="720" alt="Screenshot 2025-05-06 at 4 11 49 PM" src="https://github.com/user-attachments/assets/7dc75555-98d6-4327-96d1-34b3bbdf64d0" />
 
 ---
 
