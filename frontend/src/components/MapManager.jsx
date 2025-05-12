@@ -474,7 +474,7 @@ const MapManager = () => {
   return (
     <div>
       <div className="top-bar">
-        <button onClick={() => fileInputRef.current.click()}>Upload</button>
+        <button className="button" onClick={() => fileInputRef.current.click()}>Upload</button>
         <input
           type="file"
           accept=".json"
@@ -482,11 +482,11 @@ const MapManager = () => {
           style={{ display: "none" }}
           onChange={handleUpload}
         />
-        <button onClick={() => setIsLoadModalOpen(true)}>Load</button>
-        <button onClick={handleDownload}>Download</button>
-        <button onClick={handleEdit}>Edit</button>
-        <button onClick={generateTables} style={{ marginTop: '10px' }}>Generate Tables</button>
-        <button onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
+        <button className="button" onClick={() => setIsLoadModalOpen(true)}>Load</button>
+        <button className="button" onClick={handleDownload}>Download</button>
+        <button className="button" onClick={handleEdit}>Edit</button>
+        <button className="button" onClick={generateTables} style={{ marginTop: '10px' }}>Generate Tables</button>
+        <button className="button" onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
       </div>
 
       <div className="main-map">
@@ -524,6 +524,7 @@ const MapManager = () => {
         </div>
       )}
 
+      {/* Modal for Edit Button */}
       {isModalOpen && (
         <div className="modal">
           <div className="modal-content">

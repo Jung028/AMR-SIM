@@ -159,9 +159,13 @@ const MapSimulation = ({ mapData, setMapData, showControls = true }) => {
               {item}
               {item !== 'Disable' && maxCounts[item] !== Infinity &&
                 ` (${maxCounts[item] - (placedCounts[item] || 0)})`}
-              {currentItem === item && tooltipText && (
-                <div className="tooltip">{tooltipText}</div>
-              )}
+              <div className="tooltip">
+                {item === 'Robot' && 'A mobile robot that performs tasks.'}
+                {item === 'Station' && 'A station that interacts with robots.'}
+                {item === 'Charging' && 'A charging station for robots.'}
+                {item === 'Shelf' && 'A shelf for storing items.'}
+                {item === 'Disable' && 'Disables the selected item.'}
+              </div>
             </button>
           ))}
         </div>
