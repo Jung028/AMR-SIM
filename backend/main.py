@@ -15,12 +15,13 @@ from pymongo import MongoClient
 
 
 
-from controllers.task_controller import router as task_controller
+from controllers.task_controller import router as task_router
 from controllers.station_controller import router as station_router
 from controllers.shelf_controller import router as shelf_router
-from controllers.robot_controller import router as robot_controller
-from controllers.putaway_controller import router as putaway_controller
-from controllers.inventory_controller import router as inventory_controller
+from controllers.robot_controller import router as robot_router
+from controllers.putaway_controller import router as putaway_router
+from controllers.inventory_controller import router as inventory_router
+from controllers.google_sheets_controller import router as google_sheets_router
 
 
 # Load environment variables from the .env file
@@ -38,39 +39,6 @@ app.add_middleware(
 )
 
 
-# ~~~~ GOOGLE SHEETS CONNECTION AND RETRIEVAL ~~~~
-
-# Google Sheets API authentication
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-SHEET_ID = '1ylZxBM7yyCzBeP7Hu-MfD88tE0QSKlkYibf58PQLWbc'  # Your Google Sheet ID
-RANGE_NAME = 'Sheet2!B87:E92'  # The range you want to fetch
-
-# Authenticate and build the service
-def get_sheets_service():
-    creds, _ = google.auth.load_credentials_from_file('credentials.json', SCOPES)
-    service = build('sheets', 'v4', credentials=creds)
-    return service
-
-@app.get("/google-sheets-data")
-async def get_google_sheets_data():
-    service = get_sheets_service()
-
-    try:
-        # Fetch data from Google Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SHEET_ID, range=RANGE_NAME).execute()
-        values = result.get('values', [])
-
-        # Format the data into rows
-        rows = []
-        for row in values:
-            rows.append({"data": row})  # Adjust the structure as needed
-
-        return {"rows": rows}
-    except HttpError as err:
-        return {"error": f"An error occurred: {err}"}
-
-# ~~~~ END ~~~~
 
 
 # ~~~~ MONGODB CONNECTION AND RETRIEVAL ~~~~
@@ -341,12 +309,13 @@ async def save_picking(data: SKURequest):
 
 
 # Include the routers
-app.include_router(inventory_controller)
-app.include_router(putaway_controller)
-app.include_router(task_controller)
-app.include_router(robot_controller)
+app.include_router(inventory_router)
+app.include_router(putaway_router)
+app.include_router(task_router)
+app.include_router(robot_router)
 app.include_router(shelf_router)
 app.include_router(station_router)
+app.include_router(google_sheets_router)
 
 # ~~~~ END ~~~~
 
