@@ -13,15 +13,14 @@ import os
 from dotenv import load_dotenv  # Import the dotenv module
 from pymongo import MongoClient
 
-from services.inventory_service import router as inventory_router
-from services.order_service import router as order_router
-from services.robot_service import router as robot_router
 
 
 from controllers.task_controller import router as task_controller
 from controllers.station_controller import router as station_router
 from controllers.shelf_controller import router as shelf_router
-
+from controllers.robot_controller import router as robot_controller
+from controllers.putaway_controller import router as putaway_controller
+from controllers.inventory_controller import router as inventory_controller
 
 
 # Load environment variables from the .env file
@@ -342,10 +341,10 @@ async def save_picking(data: SKURequest):
 
 
 # Include the routers
-app.include_router(inventory_router)
-app.include_router(order_router)
+app.include_router(inventory_controller)
+app.include_router(putaway_controller)
 app.include_router(task_controller)
-app.include_router(robot_router)
+app.include_router(robot_controller)
 app.include_router(shelf_router)
 app.include_router(station_router)
 

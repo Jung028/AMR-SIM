@@ -16,8 +16,26 @@ db_station = client["station_db"]
 shelf_status = db_station["shelf_status"]
 putaway_station = db_station["putaway_station"]
 
+# putaway_tasks collection
 db_task = client["task_db"]
 putaway_tasks = db_task["putaway_tasks"]
+
+# robot_status collection
+db_robot = client["robot_db"]
+robot_status = db_robot["robot_status"]
+
+# putaway_orders collection
+db_orders = client["order_db"]
+putaway_orders = db_orders["putaway_order_tracking"]
+customer_orders = db_orders["customer_orders"]
+
+# sku collection references
+db_inventory = client["inventory_db"]
+sku_collection = db_inventory["sku"]
+storage_collection = db_inventory["storage"]
+agv_goods_collection = db_inventory["agv_area_goods"]
+shelf_status_collection = db_inventory["shelf_status"]
+
 
 # Utility function for ObjectId conversion
 def mongo_to_dict(mongo_obj):
