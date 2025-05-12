@@ -36,6 +36,14 @@ storage_collection = db_inventory["storage"]
 agv_goods_collection = db_inventory["agv_area_goods"]
 shelf_status_collection = db_inventory["shelf_status"]
 
+# simulation database, sku collection
+db_sim = client["sim"]
+sku_collection = db_sim["sku"]
+
+# map collection
+db_map = client["map"]  # Database name
+maps_collection = db_map["map"]  # Collection name
+
 
 # Utility function for ObjectId conversion
 def mongo_to_dict(mongo_obj):
