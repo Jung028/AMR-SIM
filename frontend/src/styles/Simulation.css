@@ -58,7 +58,7 @@ body {
     flex-wrap: wrap; /* Wrap categories to new lines if they overflow */
     margin-top: 30px;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+    background-color: rgba(2, 2, 2, 0.855); /* bg-white/5 */
     backdrop-filter: blur(4px); /* backdrop-blur-sm */
     border-radius: 1rem; /* rounded-xl */
     border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
@@ -70,7 +70,7 @@ body {
     margin: 20px;
     padding: 20px;
     width: 220px; /* Control the width of each category */
-    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
+    background-color: rgba(42, 40, 40, 0.749); /* bg-white/5 */
     backdrop-filter: blur(4px); /* backdrop-blur-sm */
     border-radius: 1rem; /* rounded-xl */
     border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
@@ -80,8 +80,9 @@ body {
 }
 
 .category:hover {
-    border-color: #4c86f9; /* hover:border-[#4c86f9]/50 */
+    border-color: #003482; /* hover:border-[#4c86f9]/50 */
     transform: translateY(-4px); /* hover:-translate-y-1 */
+    background-color: rgba(62, 56, 56, 0.749); /* bg-white/5 */
 }
 
 .category h3 {
@@ -168,14 +169,15 @@ button span.sm\:mr-2 {
 }
 
 .modal-content {
-    background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
-    backdrop-filter: blur(4px); /* backdrop-blur-sm */
-    border-radius: 1rem; /* rounded-xl */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
-    padding: 20px;
-    width: 400px;
-    text-align: center;
-    color: white; /* Ensures text color is white for readability */
+    background-color: rgba(35, 32, 32, 0.547); /* Existing background color */
+    backdrop-filter: blur(4px); /* Existing blur effect */
+    border-radius: 1rem; /* Rounded corners */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Border */
+    padding: 20px; /* Padding inside the modal */
+    width: 90%; /* Increase the width to 90% of the viewport */
+    max-width: 1200px; /* Set a larger maximum width */
+    text-align: center; /* Center-align the text */
+    color: white; /* Text color */
     transition: all 0.3s ease; /* Smooth transition */
 }
 

@@ -2,8 +2,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 50px; /* Optional: Add some top margin for the entire container */
-  }
+    margin-top: 50px; /* Optional: Add some top margin for the entire container */  }
   /* Dark Mode for Simulation Container */
 .simulation-dark-mode {
     background-color: #333; /* Dark background */
@@ -13,35 +12,46 @@
   /* Tooltip styling */
   .tooltip {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 12px; /* Increased padding for more width */
-    border-radius: 3px;
-    font-size: 12px;
-    margin-top: 5px;
+    background-color: rgba(57, 90, 234, 0.903); /* Darker background for better contrast */
+    color: #ffffff; /* White text for readability */
+    padding: 10px 15px; /* Add more padding for a cleaner look */
+    border-radius: 8px; /* Rounded corners for a modern design */
+    font-size: 14px; /* Slightly larger font size */
+    margin-bottom: 10px; /* Add space between the tooltip and the button */
     left: 50%;
     transform: translateX(-50%);
-    top: 35px; /* Position tooltip above the button */
-    z-index: 10;
-    visibility: visible; /* Ensure tooltip is visible when set */
-    opacity: 1; /* Make it fully visible */
-    transition: opacity 0.2s ease-in-out; /* Smooth transition for visibility */
-    width: 150px; /* Increased width for a wider tooltip */
-    text-align: center; /* Center the text inside the tooltip */
-  }
+    bottom: 120%; /* Position the tooltip above the button */
+    z-index: 9999; /* Ensure it appears above other elements */
+    visibility: hidden; /* Initially hidden */
+    opacity: 0; /* Fully transparent */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Smooth fade-in and slide-up effect */
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Add a subtle shadow for depth */
+    width: 200px; /* Allow the tooltip to adjust its width based on content */
+    max-width: 200px; /* Limit the tooltip width for long text */
+    word-wrap: break-word; /* Ensure long text wraps properly */
+}
+
+/* Show tooltip on hover */
+button:hover .tooltip {
+    visibility: visible; /* Make it visible */
+    opacity: 1; /* Fully opaque */
+    transform: translateX(-50%) translateY(-5px); /* Slight upward movement for a polished effect */
+}
   
   /* Controls container for buttons */
   .controls {
-    position: relative; /* Make the controls container relative to position the tooltip inside it */
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to next line */
-    justify-content: center;
-    margin-bottom: 70px; /* Added space between buttons and the grid */
+    flex-wrap: wrap; /* Allow buttons to wrap to the next line */
+    justify-content: center; /* Center the buttons */
+    gap: 10px; /* Add space between buttons */
+    margin-bottom: 70px; /* Space below the controls */
+    padding: 20px; /* Optional padding for the container */
   }
   
   .controls button {
     position: relative; /* To position the tooltip inside the button */
-    margin: 0 0.5rem;
+    margin: 0; /* Remove default margin */
     padding: 6px 12px;
     cursor: pointer;
     font-size: 14px;
@@ -127,4 +137,32 @@
 .map-dark-mode {
     background-color: #333; /* Dark background for the map container */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6); /* Optional shadow effect */
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* High z-index to ensure it is above all other elements */
+}
+
+/* Modal Content */
+.modal-content {
+    position: relative; /* Relative to the overlay */
+    background-color: #1f1f1f; /* Modal background */
+    color: #ffffff; /* Text color */
+    padding: 30px; /* Padding inside the modal */
+    border-radius: 15px; /* Rounded corners */
+    width: 90%; /* Modal width */
+    max-width: 1200px; /* Maximum width */
+    text-align: center; /* Center-align the text */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Shadow effect */
+    z-index: 10000; /* Higher than the overlay to ensure it is visible */
 }
