@@ -1,18 +1,7 @@
-from utils.mongo_utils import putaway_station
-from bson import ObjectId
+# services/station_service.py
+
+from utils.mongo_utils import serialize_dict, putaway_station  # Import utility functions and collections
 from models.station_model import StationLoadUpdate
-
-def mongo_to_dict(mongo_obj):
-    if isinstance(mongo_obj, ObjectId):
-        return str(mongo_obj)
-    if isinstance(mongo_obj, dict):
-        return {k: mongo_to_dict(v) for k, v in mongo_obj.items()}
-    if isinstance(mongo_obj, list):
-        return [mongo_to_dict(v) for v in mongo_obj]
-    return mongo_obj
-
-def serialize_docs(docs):
-    return [mongo_to_dict(doc) for doc in docs]
 
 async def update_station(data: StationLoadUpdate):
     return await putaway_station.update_one(
@@ -30,4 +19,4 @@ async def add_station(data: StationLoadUpdate):
 
 async def get_stations():
     stations_cursor = putaway_station.find()
-    return serialize_docs(await stations_cursor.to_list(length=None))
+    return serialize_dict(await stations_cursor.to_list(length=None))

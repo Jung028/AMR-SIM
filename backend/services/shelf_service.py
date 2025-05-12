@@ -1,18 +1,7 @@
-from utils.mongo_utils import shelf_status
-from bson import ObjectId
+# services/shelf_service.py
+
+from utils.mongo_utils import serialize_dict, shelf_status  # Import utility functions and collections
 from models.shelf_model import ShelfStatusUpdate
-
-def mongo_to_dict(mongo_obj):
-    if isinstance(mongo_obj, ObjectId):
-        return str(mongo_obj)
-    if isinstance(mongo_obj, dict):
-        return {k: mongo_to_dict(v) for k, v in mongo_obj.items()}
-    if isinstance(mongo_obj, list):
-        return [mongo_to_dict(v) for v in mongo_obj]
-    return mongo_obj
-
-def serialize_docs(docs):
-    return [mongo_to_dict(doc) for doc in docs]
 
 async def update_shelf(data: ShelfStatusUpdate):
     update_data = {
@@ -36,4 +25,4 @@ async def add_shelf(data: ShelfStatusUpdate):
 
 async def get_shelves():
     shelves_cursor = shelf_status.find()
-    return serialize_docs(await shelves_cursor.to_list(length=None))
+    return serialize_dict(await shelves_cursor.to_list(length=None))
