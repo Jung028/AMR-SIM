@@ -12,7 +12,7 @@
   /* Tooltip styling */
   .tooltip {
     position: absolute;
-    background-color: rgba(57, 90, 234, 0.903); /* Darker background for better contrast */
+    background-color: rgba(44, 79, 233, 0.903); /* Darker background for better contrast */
     color: #ffffff; /* White text for readability */
     padding: 10px 15px; /* Add more padding for a cleaner look */
     border-radius: 8px; /* Rounded corners for a modern design */
