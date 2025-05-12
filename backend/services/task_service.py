@@ -1,26 +1,8 @@
 # services/task_service.py
-from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import HTTPException
-from bson import ObjectId
-import os
 import httpx
 import random
-
-# MongoDB setup
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = AsyncIOMotorClient(MONGO_URI)
-db_task = client["task_db"]
-putaway_tasks = db_task["putaway_tasks"]
-
-# Utility function
-def serialize_dict(data):
-    if isinstance(data, dict):
-        return {k: serialize_dict(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [serialize_dict(v) for v in data]
-    elif isinstance(data, ObjectId):
-        return str(data)
-    return data
+from utils.mongo_utils import serialize_dict, putaway_tasks  # Import utility functions and MongoDB collections
 
 async def fetch_putaway_tasks(map_id: str):
     try:
