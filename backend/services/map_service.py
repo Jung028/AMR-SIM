@@ -100,3 +100,9 @@ async def upload_map_service(file: UploadFile):
     except Exception as e:
         print(f"Error uploading/loading map: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+async def get_latest_map_id():
+    latest_map = await maps_collection.find().sort("_id", -1).limit(1).to_list(1)
+    if not latest_map:
+        raise HTTPException(status_code=404, detail="No maps found")
+    return {"latest_id": str(latest_map[0]["_id"])}

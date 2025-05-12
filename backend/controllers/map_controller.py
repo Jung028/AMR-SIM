@@ -5,7 +5,8 @@ from services.map_service import (
     get_map_by_id_service, 
     save_map_service, 
     update_map_service, 
-    upload_map_service
+    upload_map_service,
+    get_latest_map_id
 )
 
 router = APIRouter()
@@ -33,3 +34,7 @@ async def update_map(id: str, update_data: UpdateMapRequest):
 @router.post("/api/maps/upload")
 async def upload_map(file: UploadFile = File(...)):
     return await upload_map_service(file)
+
+@router.get("/api/maps/latest-id")
+async def latest_id():
+    return await get_latest_map_id()
