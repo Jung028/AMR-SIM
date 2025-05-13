@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import MapSimulation from './MapSimulation';
 import '../styles/MapManager.css';
 
-const MapManager = () => {
+const MapManager = ({ agvMode }) => {
   const [mapData, setMapData] = useState({
     _id: { $oid: "initial-map-id" },
     name: 'New Map',
@@ -217,7 +217,11 @@ const MapManager = () => {
     // Step 2: Generate putaway tasks (AFTER creating the order)
     const taskResponse = await fetch("http://127.0.0.1:8000/task/generate-putaway", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+
+      },
+      body: JSON.stringify({ mode: agvMode }), // include selected mode
+
     });
 
     const taskData = await taskResponse.json();

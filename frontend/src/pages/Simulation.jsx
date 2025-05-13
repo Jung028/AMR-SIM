@@ -1,4 +1,3 @@
-// src/pages/Simulation.jsx
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Algorithm from '../components/Algorithm';
@@ -12,6 +11,7 @@ const Simulation = () => {
   const [isModalOpen, setIsModalOpen] = useState(null);
   const [selectedAlgorithms, setSelectedAlgorithms] = useState([]);
   const [simulationInProgress, setSimulationInProgress] = useState(false);
+  const [agvMode, setAgvMode] = useState('proximity'); // NEW STATE for AGV mode
 
   const mapRef = useRef(); // Ref to control MapManager
 
@@ -22,12 +22,13 @@ const Simulation = () => {
   const handleStartSimulation = () => {
     if (simulationInProgress) return;
     console.log('Starting simulation with algorithms:', selectedAlgorithms);
+    console.log('Selected AGV mode:', agvMode);
     setSimulationInProgress(true);
     
-    // Trigger simulation inside MapManager
+    // Trigger simulation inside MapManager and pass agvMode
     mapRef.current?.startSimulationSequence(() => {
       setSimulationInProgress(false);
-    });
+    }, agvMode);
   };
 
   return (
@@ -50,8 +51,26 @@ const Simulation = () => {
       {/* Algorithm Selector */}
       <Algorithm onChange={setSelectedAlgorithms} />
 
+      {/* AGV Mode Selector */}
+      <div className="category-container">
+        <div className="category">
+          <h3>AGV Assignment Mode</h3>
+          <div className="button-group">
+            {['proximity', 'energy', 'load_balanced'].map(mode => (
+              <button
+                key={mode}
+                className={`mode-button ${agvMode === mode ? 'selected' : ''}`}
+                onClick={() => setAgvMode(mode)}
+              >
+                {mode.replace('_', ' ').toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Map Manager with ref */}
-      <MapManager ref={mapRef} isSimulating={simulationInProgress} hideTopBar={true} />
+      <MapManager ref={mapRef} isSimulating={simulationInProgress} hideTopBar={true} agvMode={agvMode}/>
 
       {/* Putaway Tasks Table */}
       <PutawayTasksTable />
@@ -62,8 +81,6 @@ const Simulation = () => {
           ▶ Start Simulation
         </button>
       </div>
-
-      
 
       {/* SKU Sync Modal */}
       {isModalOpen === 'skuSync' && <Sku_Sync isOpen={true} closeModal={closeModal} />}
