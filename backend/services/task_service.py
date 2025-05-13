@@ -11,7 +11,7 @@ async def fetch_putaway_tasks(map_id: str):
     except Exception:
         raise HTTPException(status_code=500, detail="Error fetching putaway tasks")
 
-async def generate_putaway_tasks():
+async def generate_putaway_tasks(mode: str = "proximity"):
     MAX_TASKS_PER_ROBOT = 3
     try:
         async with httpx.AsyncClient() as client:
@@ -30,8 +30,17 @@ async def generate_putaway_tasks():
             if not robots:
                 raise HTTPException(status_code=404, detail="No available robots")
 
-            robot_task_counts = {r["robot_id"]: 0 for r in robots}
-            sorted_robots = sorted(robots, key=lambda r: r["location"]["x"])
+            # Sort robots based on selected mode
+            if mode == "proximity":
+                sorted_robots = sorted(robots, key=lambda r: r["location"]["x"])
+            elif mode == "energy":
+                sorted_robots = sorted(robots, key=lambda r: r.get("battery_level", 0), reverse=True)
+            elif mode == "load_balanced":
+                sorted_robots = sorted(robots, key=lambda r: r.get("filled_space", 0))  # ascending
+            else:
+                raise HTTPException(status_code=400, detail=f"Unknown AGV mode: {mode}")
+
+            robot_task_counts = {r["robot_id"]: 0 for r in sorted_robots}
             robot_index = 0
 
             shelves = (await client.get(f"http://localhost:8000/station/shelves?map_id={map_id}")).json()
