@@ -168,9 +168,6 @@ const Home = () => {
     }
   };
   
-  
-  
-  
 
   // Close the modal
   const handleCloseModal = () => {

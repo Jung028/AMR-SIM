@@ -1,6 +1,7 @@
 // src/components/MapManager.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import MapSimulation from './MapSimulation';
+import PutawayTasksTable from './PutawayTasksTable';
 import '../styles/MapManager.css';
 
 const MapManager = ({ agvMode }) => {
@@ -182,7 +183,7 @@ const MapManager = ({ agvMode }) => {
           setTempMapData(map);
           setIsLoadModalOpen(false);
           localStorage.setItem("mapData", JSON.stringify(map));
-          setCurrentMapId(mapId); // <<=== Save the loaded map ID
+          setCurrentMapId(mapId); // Dynamically set the loaded map ID
         } else {
           alert("Map data is missing or incomplete.");
         }
@@ -542,6 +543,8 @@ const MapManager = ({ agvMode }) => {
           </div>
         </div>
       )}
+
+      <PutawayTasksTable mapId={currentMapId} />
     </div>
   );
 };
