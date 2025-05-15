@@ -1,2 +1,7 @@
 # .gitignore
 credentials.json
+
+# Ignore Python cache files
+*.pyc
+*.pyo
+__pycache__/

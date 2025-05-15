@@ -272,6 +272,7 @@ const MapManager = ({ agvMode }) => {
         status: 'idle',
         location: { x: robot.row, y: robot.col },
         map_id: mapId,
+        battery_level: 100, // battery starts 100%
       }));
   
     const shelves = components.filter(c => c.type.toLowerCase() === 'shelf')
@@ -311,6 +312,7 @@ const MapManager = ({ agvMode }) => {
           status: robot.status,
           location: robot.location,
           map_id: robot.map_id,  // Including map_id in the payload
+          battery_level: robot.battery_level || 100, // Use provided battery level or default to 100
         };
   
         const response = await fetch('http://127.0.0.1:8000/robots/add', {
