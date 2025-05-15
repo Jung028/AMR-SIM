@@ -13,6 +13,8 @@ async def fetch_putaway_tasks(map_id: str):
 
 async def generate_putaway_tasks(mode: str = "proximity"):
     MAX_TASKS_PER_ROBOT = 3
+    BATTERY_THRESHOLD = 60.0
+    
     try:
         async with httpx.AsyncClient() as client:
             order_response = await client.get("http://localhost:8000/orders/putaway/latest")
@@ -30,13 +32,18 @@ async def generate_putaway_tasks(mode: str = "proximity"):
             if not robots:
                 raise HTTPException(status_code=404, detail="No available robots")
 
+            # Filter out robots with low battery
+            robots = [r for r in robots if r.get("battery_level", 0) >= BATTERY_THRESHOLD]
+            if not robots:
+                raise HTTPException(status_code=404, detail="No robots with sufficient battery available")
+
             # Sort robots based on selected mode
             if mode == "proximity":
                 sorted_robots = sorted(robots, key=lambda r: r["location"]["x"])
             elif mode == "energy":
-                sorted_robots = sorted(robots, key=lambda r: r.get("battery_level", 0), reverse=True)
+                sorted_robots = sorted(robots, key=lambda r: r["battery_level"], reverse=True)
             elif mode == "load_balanced":
-                sorted_robots = sorted(robots, key=lambda r: r.get("filled_space", 0))  # ascending
+                sorted_robots = sorted(robots, key=lambda r: r.get("filled_space", 0))
             else:
                 raise HTTPException(status_code=400, detail=f"Unknown AGV mode: {mode}")
 

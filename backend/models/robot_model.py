@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict
 
 class Location(BaseModel):
@@ -10,6 +10,7 @@ class RobotHeartbeat(BaseModel):
     status: str
     location: Location
     map_id: str
+    battery_level: float = Field(..., ge=0, le=100)  # Battery level as percentage
 
     @staticmethod
     def validate_status(status: str):
@@ -26,3 +27,4 @@ class RobotOut(BaseModel):
     status: str
     location: Dict[str, int]
     map_id: str
+    battery_level: float
