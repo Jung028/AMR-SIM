@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Location(BaseModel):
     x: int
@@ -14,6 +14,7 @@ class RobotHeartbeat(BaseModel):
     location: Location
     map_id: str
     battery_level: float = Field(..., ge=0, le=100)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) # Add this
 
     @staticmethod
     def validate_status(status: str):
