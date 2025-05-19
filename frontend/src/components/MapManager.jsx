@@ -301,6 +301,82 @@ const MapManager = ({ agvMode }) => {
   
     await sendDataToBackend(mapId, robots, shelves, stations);
   };
+
+
+  const generateRobotMetrics = async () => {
+    if (!currentMapId) {
+      alert("No map loaded. Cannot generate metrics.");
+      return;
+    }
+  
+    try {
+      console.log("🔍 Fetching robots for map ID:", currentMapId);
+  
+      // 1. Fetch robot status by map_id
+      const response = await fetch(`http://127.0.0.1:8000/robots/status/by-map/${currentMapId}`);
+  
+      console.log("📡 Status code:", response.status);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Failed to fetch robots:", errorText);
+        alert(`Failed to fetch robots: ${errorText}`);
+        return;
+      }
+  
+      const data = await response.json();
+      console.log("📦 Raw response from server:", data);
+  
+      const robotStatusList = data.robots || [];
+      console.log("🤖 Extracted robots:", robotStatusList);
+  
+      if (!Array.isArray(robotStatusList) || robotStatusList.length === 0) {
+        alert("No robots found for the current map.");
+        return;
+      }
+  
+      // 2. Generate robot metrics entries
+      for (const robot of robotStatusList) {
+        console.log("⚙️ Generating metric for robot:", robot.robot_id);
+  
+        const now = new Date();
+        const endTime = new Date(now.getTime() + 5 * 60000); // +5 minutes
+  
+        const metricEntry = {
+          robot_id: robot.robot_id,
+          task_id: `task-${Math.floor(Math.random() * 10000)}`,
+          task_start_time: now.toISOString(),
+          task_end_time: endTime.toISOString(),
+          battery_start_level: robot.battery_level ?? 100,
+          battery_end_level: Math.max((robot.battery_level ?? 100) - 5, 0),
+          task_duration: 5,
+          distance: 20.0,
+          errors: [],
+          map_id: currentMapId,
+        };
+  
+        const metricsResponse = await fetch('http://127.0.0.1:8000/robot_metrics/add', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(metricEntry),
+        });
+  
+        if (!metricsResponse.ok) {
+          const error = await metricsResponse.text();
+          console.error(`❌ Failed to add metrics for ${robot.robot_id}:`, error);
+        } else {
+          console.log(`✅ Metrics added for ${robot.robot_id}`);
+        }
+      }
+  
+      alert("Robot metrics generated successfully.");
+    } catch (error) {
+      console.error("💥 Exception while generating metrics:", error);
+      alert("Error generating robot metrics: " + error.message);
+    }
+  };
+  
+  
   
   
   const sendDataToBackend = async (mapId, robots, shelves, stations) => {
@@ -493,6 +569,7 @@ const MapManager = ({ agvMode }) => {
         <button className="button" onClick={handleDownload}>Download</button>
         <button className="button" onClick={handleEdit}>Edit</button>
         <button className="button" onClick={generateTables} style={{ marginTop: '10px' }}>Generate Tables</button>
+        <button onClick={generateRobotMetrics}>Generate Robot Metrics</button>
         <button className="button" onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
       </div>
 
