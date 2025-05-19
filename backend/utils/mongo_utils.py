@@ -23,6 +23,14 @@ putaway_tasks = db_task["putaway_tasks"]
 # robot_status collection
 db_robot = client["robot_db"]
 robot_status = db_robot["robot_status"]
+robot_metrics = db_robot["robot_metrics"] # Collection for robot metrics
+
+# Create indexes for analytics
+robot_metrics.create_index([("robot_id", 1)])
+robot_metrics.create_index([("task_id", 1)])
+robot_metrics.create_index([("task_start_time", -1)])
+robot_metrics.create_index([("map_id", 1)])
+
 
 # putaway_orders collection
 db_orders = client["order_db"]

@@ -1,6 +1,13 @@
+# controllers/robot_controller.py
+
+from models.robot_model import RobotHeartbeat, RobotOut, RobotMetrics
+from services.robot_service import (
+    update_robot,
+    get_idle_robots_by_map,
+    add_robot as add_robot_service,
+    log_robot_metrics,
+)
 from fastapi import APIRouter, HTTPException, Query
-from models.robot_model import RobotHeartbeat, RobotOut
-from services.robot_service import update_robot, get_idle_robots_by_map, add_robot as add_robot_service
 from typing import Dict, List
 
 router = APIRouter()
@@ -19,3 +26,7 @@ async def add_robot(data: RobotHeartbeat):
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
+
+@router.post("/robots/metrics")
+async def submit_robot_metrics(data: RobotMetrics):
+    return await log_robot_metrics(data)

@@ -1,5 +1,8 @@
-from models.robot_model import RobotHeartbeat
-from utils.mongo_utils import robot_status
+# services/robot_service.py
+
+from models.robot_model import RobotHeartbeat, RobotMetrics
+from utils.mongo_utils import robot_status, robot_metrics
+from datetime import datetime
 
 BATTERY_THRESHOLD = 60.0
 
@@ -25,3 +28,12 @@ async def add_robot(data: RobotHeartbeat):
         return {"error": "Robot already exists for this map"}
     await robot_status.insert_one(data.dict())
     return {"message": "Robot added successfully"}
+
+async def log_robot_metrics(data: RobotMetrics):
+    # Optional: calculate task duration
+    if not data.task_duration:
+        duration = (data.task_end_time - data.task_start_time).total_seconds()
+        data.task_duration = round(duration, 2)
+    
+    await robot_metrics.insert_one(data.dict())
+    return {"message": "Robot metrics logged"}
