@@ -205,55 +205,70 @@ const MapManager = ({ agvMode }) => {
     }
   };
 
-  const startSimulation = async () => {
-    const response = await fetch("http://127.0.0.1:8000/orders/putaway", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentMapId: currentMapId }) // <=== ADD THIS
-
-    });
-    const data = await response.json();
-    console.log(data.message); // Logs: "Putaway order created"
-
-    // Step 2: Generate putaway tasks (AFTER creating the order)
-    const taskResponse = await fetch("http://127.0.0.1:8000/task/generate-putaway", {
-      method: "POST",
-      headers: { "Content-Type": "application/json",
-
-      },
-      body: JSON.stringify({ mode: agvMode }), // include selected mode
-
-    });
-
-    const taskData = await taskResponse.json();
-    console.log(taskData.message); // Logs: "Putaway tasks generated" or similar
-    
-  };
-
-
   const startRobotMovementSimulation = async (robot, shelf, station) => {
-    // Set initial positions
-    setRobotPos({ row: robot.row, col: robot.col });
-    setShelfPos({ row: shelf.row, col: shelf.col });
-    setShelfOriginalPos({ row: shelf.row, col: shelf.col });
-  
-    // Move robot to shelf
-    await moveTo({ row: robot.row, col: robot.col }, { row: shelf.row, col: shelf.col });
-    await pickUpShelf();
-  
-    // Move to station
-    await moveTo({ row: shelf.row, col: shelf.col }, { row: station.row, col: station.col });
-    await waitAtStation();
-  
-    // Return shelf to original position
-    await moveTo({ row: station.row, col: station.col }, shelfOriginalPos);
-    await placeShelf();
-  
-    // Move robot back to its original position
-    await moveTo(shelfOriginalPos, { row: robot.row, col: robot.col });
-  
-    setIsSimulating(false); // End simulation
+    try {
+      // Set initial positions
+      setRobotPos({ row: robot.row, col: robot.col });
+      setShelfPos({ row: shelf.row, col: shelf.col });
+      setShelfOriginalPos({ row: shelf.row, col: shelf.col });
+    
+      // Move robot to shelf
+      await moveTo({ row: robot.row, col: robot.col }, { row: shelf.row, col: shelf.col });
+      await pickUpShelf();
+    
+      // Move to station
+      await moveTo({ row: shelf.row, col: shelf.col }, { row: station.row, col: station.col });
+      await waitAtStation();
+    
+      // Return shelf to original position
+      await moveTo({ row: station.row, col: station.col }, shelfOriginalPos);
+      await placeShelf();
+    
+      // Move robot back to its original position
+      await moveTo(shelfOriginalPos, { row: robot.row, col: robot.col });
+    
+      setIsSimulating(false);
+    } catch (error) {
+      console.error('Movement simulation error:', error);
+      setIsSimulating(false);
+      throw error;
+    }
   };
+
+  const moveTo = async (start, end) => {
+    const totalSteps = Math.max(Math.abs(end.row - start.row), Math.abs(end.col - start.col));
+    
+    for (let step = 0; step <= totalSteps; step++) {
+      const currentRow = start.row + ((end.row - start.row) / totalSteps) * step;
+      const currentCol = start.col + ((end.col - start.col) / totalSteps) * step;
+    
+      setMapData((prevState) => {
+        const updatedComponents = prevState.components.map((component) =>
+          component.type.toLowerCase() === 'robot'
+            ? { ...component, row: Math.round(currentRow), col: Math.round(currentCol) }
+            : component
+        );
+        return { ...prevState, components: updatedComponents };
+      });
+    
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  };
+
+  const pickUpShelf = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+  const waitAtStation = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+  const placeShelf = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+
+  
 
   const generateTables = async () => {
 
@@ -509,6 +524,86 @@ const MapManager = ({ agvMode }) => {
       alert('Error sending data to the backend: ' + error.message);
     }
   };
+
+
+
+  const startRobotMovementSimulation = async (robot, shelf, station) => {
+    // Set initial positions
+    setRobotPos({ row: robot.row, col: robot.col });
+    setShelfPos({ row: shelf.row, col: shelf.col });
+    setShelfOriginalPos({ row: shelf.row, col: shelf.col });
+  
+    // Move robot to shelf
+    await moveTo({ row: robot.row, col: robot.col }, { row: shelf.row, col: shelf.col });
+    await pickUpShelf();
+  
+    // Move to station
+    await moveTo({ row: shelf.row, col: shelf.col }, { row: station.row, col: station.col });
+    await waitAtStation();
+  
+    // Return shelf to original position
+    await moveTo({ row: station.row, col: station.col }, shelfOriginalPos);
+    await placeShelf();
+  
+    // Move robot back to its original position
+    await moveTo(shelfOriginalPos, { row: robot.row, col: robot.col });
+  
+    setIsSimulating(false); // End simulation
+  };
+
+
+  const fetchPutawayTasks = async (mapId) => {
+    try {
+      const response = await fetch(`/task/putaway-tasks?map_id=${mapId}`);
+      if (!response.ok) throw new Error("Failed to fetch tasks");
+      const data = await response.json();
+      return data.tasks;
+    } catch (error) {
+      console.error("Error fetching putaway tasks:", error);
+      return [];
+    }
+  };
+
+
+  const simulateFromPutawayTasks = async () => {
+    if (!currentMapId) {
+      alert("Map ID not selected.");
+      return;
+    }
+  
+    setIsSimulating(true); // Optional loading state
+  
+    try {
+      const response = await fetch(`/task/putaway-tasks?map_id=${currentMapId}`);
+      const data = await response.json();
+      const tasks = data.tasks;
+  
+      for (const task of tasks) {
+        const robot = mapData.components.find(
+          (c) => c.type === "Robot" && c.id === task.robot_id
+        );
+        const shelf = mapData.components.find(
+          (c) => c.type === "Shelf" && c.id === task.shelf_id
+        );
+        const station = mapData.components.find(
+          (c) => c.type === "Station" && c.id === task.station_id
+        );
+  
+        if (!robot || !shelf || !station) {
+          console.warn(`Component not found for task ${task.task_id}`);
+          continue;
+        }
+  
+        await startRobotMovementSimulation(robot, shelf, station);
+      }
+    } catch (error) {
+      console.error("Simulation failed:", error);
+    } finally {
+      setIsSimulating(false); // Allow retry
+    }
+  };
+  
+  
   
   // This is the function to simulate movement. You can modify it as needed to update `mapData` based on new robot positions
   const moveTo = async (start, end) => {
@@ -570,7 +665,14 @@ const MapManager = ({ agvMode }) => {
         <button className="button" onClick={handleEdit}>Edit</button>
         <button className="button" onClick={generateTables} style={{ marginTop: '10px' }}>Generate Tables</button>
         <button onClick={generateRobotMetrics}>Generate Robot Metrics</button>
-        <button className="button" onClick={startSimulation} style={{ marginTop: '10px' }}>Start Simulation</button>
+        <button className="button" onClick={startSimulation} style={{ marginTop: '10px' }}>Generate Tasks</button>
+        <button
+          disabled={!currentMapId || isSimulating}
+          onClick={simulateFromPutawayTasks}
+        >
+          Start Robot Simulation
+        </button>
+
       </div>
 
       <div className="main-map">
@@ -629,3 +731,21 @@ const MapManager = ({ agvMode }) => {
 };
 
 export default MapManager;
+
+// Add type definitions for better TypeScript support
+interface MapComponent {
+  id: string;
+  type: string;
+  row: number;
+  col: number;
+  [key: string]: any;
+}
+
+interface PutawayTask {
+  task_id: string;
+  robot_id: string;
+  shelf_id: string;
+  station_id: string;
+  map_id: string;
+  [key: string]: any;
+}

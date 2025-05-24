@@ -1,43 +1,138 @@
-/* General Dark Mode Styles */
+:root {
+    --primary-bg: #121212;
+    --secondary-bg: #1e1e1e;
+    --accent-bg: #333333;
+    --text-color: #e0e0e0;
+    --heading-color: #ffffff;
+    --border-color: #444444;
+    --hover-color: #696969;
+    --transition: all 0.3s ease;
+    --shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    --radius: 15px;
+}
+
+/* Base Styles */
 body {
-    background-color: #121212; /* Dark background */
-    color: #e0e0e0; /* Light text color */
+    background-color: var(--primary-bg);
+    color: var(--text-color);
     font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 20px;
+    line-height: 1.6;
 }
 
 h1, h2 {
-    color: #ffffff; /* Bright white for headings */
+    color: var(--heading-color);
     text-align: center;
+    margin: 20px 0;
+    font-weight: 600;
 }
 
-/* Modal Overlay Styles */
+/* Layout Containers */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Top Bar */
+.top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: var(--primary-bg);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+button {
+    padding: 12px 24px;
+    background-color: var(--secondary-bg);
+    color: var(--heading-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 16px;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+button:hover {
+    background-color: var(--hover-color);
+    box-shadow: 0 2px 8px rgba(97, 218, 251, 0.3);
+    border-color: #61dafb;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+th {
+    background-color: var(--accent-bg);
+    color: var(--heading-color);
+    font-weight: 600;
+    padding: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+tr:nth-child(even) {
+    background-color: var(--primary-bg);
+}
+
+tr:hover {
+    background-color: var(--hover-color);
+}
+
+/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
+    background-color: rgba(0, 0, 0, 0.85);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    animation: fadeIn 0.3s ease-in-out; /* Smooth fade-in animation */
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Modal Active State Styles */
-.modal-content.modal-active {
-    background-color: #000000; /* Black background for modal content */
-    color: #ffffff; /* White text for better contrast */
+.modal-content {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    padding: 30px;
+    border-radius: var(--radius);
+    width: 95%;
+    max-width: 1400px;
+    box-shadow: var(--shadow);
+    animation: slideIn 0.3s ease-in-out;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
 }
 
-.modal-overlay.modal-active {
-    background-color: rgba(0, 0, 0, 0.9); /* Darker black background */
-}
-
-/* Close Button Styles */
+/* Close Button */
 .close-btn {
     position: absolute;
     top: 15px;
@@ -45,84 +140,20 @@ h1, h2 {
     background: transparent;
     border: none;
     font-size: 24px;
-    color: #e0e0e0;
+    color: var(--text-color);
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: var(--transition);
 }
 
 .close-btn:hover {
-    color: #ff4d4d; /* Red hover effect */
+    color: #ff4d4d;
+    transform: scale(1.1);
 }
 
-/* Button Styles */
-.top-bar button {
-    padding: 20px 20px;
-    background-color: #1f1f1f; /* Grey background */
-    color: #ffffff; /* White text */
-    border: 2px solid #444;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.top-bar button:hover {
-    background-color: #696969; /* Darker grey on hover */
-    color: #ffffff; /* White text on hover */
-    box-shadow: 0 0 10px 2px #61dafb; /* Optional glowing effect */
-    border-color: #61dafb; /* Optional border color change */
-}
-
-
-
-/* Table Styles */
-table {
-    border-collapse: collapse;
-    width: 80%;
-    margin: 20px auto;
-    background-color: #1e1e1e; /* Dark table background */
-    color: #e0e0e0;
-    border: 1px solid #333;
-}
-
-th {
-    background-color: #333; /* Darker header */
-    color: #ffffff;
-}
-
-td, th {
-    text-align: left;
-    padding: 10px;
-    border: 1px solid #444; /* Subtle border */
-}
-
-tr:nth-child(even) {
-    background-color: #2a2a2a; /* Alternate row color */
-}
-
-tr:hover {
-    background-color: #444; /* Highlight row on hover */
-}
-
-/* Top Bar Styles */
-.top-bar {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to the next line */
-    justify-content: center; /* Center the buttons */
-    gap: 15px; /* Add space between buttons */
-    padding: 10px; /* Optional padding for the container */
-    background-color: #000000; /* Dark bar background */
-    border-bottom: 1px solid #333;
-}
-
-/* Modal Animations */
+/* Animations */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes slideIn {
@@ -136,33 +167,23 @@ tr:hover {
     }
 }
 
-/* Specific Modal for Simulations */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
-    background-color: rgba(0, 0, 0, 0.5); /* Background overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-/* Modal Content Styles */
-.modal-content {
-    color: #e0e0e0; /* Text color */
-    padding: 30px; /* Padding inside the modal */
-    border-radius: 15px; /* Rounded corners */
-    width: 95%; /* Increase the width to 95% of the viewport */
-    max-width: 1400px; /* Set a larger maximum width */
-    text-align: center; /* Center-align the text */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Shadow effect */
-    animation: slideIn 0.3s ease-in-out; /* Smooth slide-in animation */
-    position: relative;
-    max-height: 80vh; /* Limit height to 80% of the viewport */
-    overflow-y: auto; /* Enable scrolling for long content */
+/* Responsive Design */
+@media (max-width: 768px) {
+    .top-bar {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    button {
+        width: 100%;
+        max-width: 300px;
+        margin: 10px 0;
+    }
+    
+    table {
+        display: block;
+        overflow-x: auto;
+    }
 }
 
 
